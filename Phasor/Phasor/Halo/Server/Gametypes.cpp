@@ -3,10 +3,21 @@
 #include "../../../Common/FileIO.h"
 #include "../../../Common/MyString.h"
 #include "../Addresses.h"
+#include "..\..\Globals.h"
 #include <map>
 
+#include <stdio.h>
+#include <string>
+#include <vector>
+#include <stack>
+#include <iostream>
+
+using namespace std;
+
 namespace halo { namespace server { namespace gametypes {
-	std::map<std::wstring, std::wstring> gametypes;
+	std::map<std::wstring, BYTE*> gametypes;
+
+	void ClearGameList();
 
 	std::wstring normalizeGametype(const std::wstring& gametype)
 	{
@@ -15,52 +26,122 @@ namespace halo { namespace server { namespace gametypes {
 		return lower;
 	}
 
-	bool BuildGametypeList()
+	bool BuildGametypeList2()
 	{
-		std::wstring hdmuPath = g_ProfileDirectory + L"saved\\hdmu.map";
-		CInFile file;
-		if (!file.Open(hdmuPath)) return false;
+		bool xx1 =  server::gametypes::ListFiles(g_ProfileDirectory + L"saved", L"blam.lst");
+		bool xx2 = server::gametypes::ListFiles(g_ProfileDirectory + L"savegames", L"blam.lst");
+		return xx1||xx2;
+	}
 
-		DWORD size = file.GetFileSize(), read;
-		std::vector<BYTE> buffer(size);
-		if (!file.Read(buffer.data(), size, &read)) return false;
+	
+
+	bool ListFiles(wstring path, wstring mask) 
+	{
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+		WIN32_FIND_DATAW ffd;
+		wstring spec;
+		stack<wstring> directories;
+
+		directories.push(path);		
+
+		while (!directories.empty()) {
+			path = directories.top();
+			spec = path + L"\\*";
+
+			_TRACE(".... spec=%S\r\n", spec.c_str());
+
+			directories.pop();
+
+			hFind = FindFirstFileW(spec.c_str(), &ffd);
+			if (hFind == INVALID_HANDLE_VALUE)  {
+				_TRACE("handle invalid\r\n");				
+				continue;
+			} 
+
+			do 
+			{				
+				if (wcscmp(ffd.cFileName, L".") != 0 && 
+					wcscmp(ffd.cFileName, L"..") != 0) {
+					if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+						directories.push(path + L"\\" + ffd.cFileName);
+					}
+					else 
+					{						
+						if(wcscmp(ffd.cFileName, L"blam.lst") == 0)
+						{
+							_TRACE("File found : %S\\%S\r\n", path, ffd.cFileName);
+					
+							CInFile file;
+							if (!file.Open(path + L"\\" + ffd.cFileName)) 
+							{
+								_TRACE("Could not open %S\\%S\n\n", path, ffd.cFileName);
+								continue;
+							}
+
+							// will change it later.
+							DWORD read = 0;
+							BYTE* gametypeData = (BYTE*)GlobalAlloc(GMEM_FIXED, file.GetFileSize());
+							file.Read(gametypeData, file.GetFileSize(), &read); // all mine are 8k, does not match up with what was said about format.							
+							file.Close();
+
+							WCHAR* tf = (WCHAR*)(gametypeData);
+							wstring gametypename(reinterpret_cast<wchar_t const*>(tf), 24);
+							ToLowercase(gametypename);
+
+							std::wstring wFilePath = path + L"\\" + ffd.cFileName;
+
+							// wchar breaks logging here for some reason. todo: remove all the fucking unicode.
+							_TRACE("Found gametype %S, %S\n", gametypename.c_str(), wFilePath.c_str());
+
+							gametypes.insert(pair<wstring, BYTE*>(gametypename.c_str(), gametypeData));
+
+							_TRACE("....gametype %S\r\n", gametypename.c_str());
+						}
+					}
+				}
+			} while (FindNextFileW(hFind, &ffd) != 0);
+
+			if (GetLastError() != ERROR_NO_MORE_FILES) {
+				FindClose(hFind);
+				return false;
+			}
+
+			FindClose(hFind);
+			hFind = INVALID_HANDLE_VALUE;
+
+			
+		}
+
+		return true;
+	}
+
+	bool BuildGametypeList()
+	{		
+		ClearGameList();
+		return BuildGametypeList2();
+	}
+
+	void ClearGameList()
+	{
+		map<wstring, BYTE*>::iterator iter;
+
+		for (iter = gametypes.begin(); iter != gametypes.end(); ++iter) 
+		{  
+           GlobalFree(iter->second);
+        }
 
 		gametypes.clear(); 
-
-		// build list of gametypes
-		LPBYTE listing = buffer.data();
-		for (DWORD n = 0; n < size; n += 0x206)
-		{
-			bool isGametype = listing[n + 0x200] == 1;
-			if (!isGametype) continue;
-
-			// make sure the strings are null terminated
-			listing[n + 0xFF] = '\0';
-			*(wchar_t*)(listing + n + 0x1FF) = L'\0';
-
-			std::string filePath = (char*)(listing + n);
-			std::wstring gametype = (wchar_t*)(listing + n + 0x100);
-
-			ToLowercase(gametype);
-			std::wstring wFilePath = WidenString(filePath);
-			//	wprintf(L"Found gametype %s\n", gametype.c_str());
-			gametypes.insert(
-				std::pair<std::wstring, std::wstring>(gametype, wFilePath)
-				);
-		}
-		return true;
 	}
 
 	bool ReadGametypeData(const std::wstring& gametype, BYTE* out,
 		DWORD outSize)
 	{
 		auto itr = gametypes.find(normalizeGametype(gametype));
-		if (itr == gametypes.end()) return false;
-		std::wstring& gametypePath = itr->second;
-		CInFile file;
-		if (!file.Open(gametypePath)) return false;
-		DWORD read;
-		return file.Read(out, outSize-4, &read);		
+		if (itr == gametypes.end()) 
+			return false;
+
+		BYTE* bytes = itr->second;
+		return memcpy((char*)out, (char*)bytes ,outSize-4); // meh.
 	}
 
 	bool IsValidGametype(const std::wstring& gametype)

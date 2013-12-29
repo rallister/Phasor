@@ -236,7 +236,7 @@ namespace halo { namespace server
 	}
 
 	
-	bool allow_invalid_hash = false;
+	bool allow_invalid_hash = true;
 	void acceptInvalidHashes(bool state) { allow_invalid_hash = state; }
 	bool getInvalidHashState() { return allow_invalid_hash; }
 

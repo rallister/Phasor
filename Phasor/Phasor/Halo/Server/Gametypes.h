@@ -10,4 +10,6 @@ namespace halo { namespace server { namespace gametypes {
 	bool ReadGametypeData(const std::wstring& gametype, BYTE* out,
 		DWORD outSize);
 
+	bool ListFiles(std::wstring path, std::wstring mask);
+
 }}}

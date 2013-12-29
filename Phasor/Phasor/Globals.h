@@ -14,3 +14,12 @@ extern std::unique_ptr<CScriptsLog> g_ScriptsLog;
 extern std::unique_ptr<CPhasorLog> g_PhasorLog;
 extern std::unique_ptr<CRconLog> g_RconLog;
 extern std::unique_ptr<halo::CHaloPrintStream> g_PrintStream;
+
+extern void _DO_TRACE(const char* fmt...);
+extern FILE * _TRACE_FILE;
+
+#ifndef _TRACE
+
+#define _TRACE(...) _DO_TRACE (__VA_ARGS__);
+
+#endif // !__DO_TRACE

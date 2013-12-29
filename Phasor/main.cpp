@@ -46,6 +46,26 @@ void LocateDirectories();
 // Process any early Phasor commands.
 void LoadEarlyInit(COutStream& out);
 
+
+FILE* _TRACE_FILE;
+
+void _DO_TRACE(const char *fmt, ...) {
+
+	if(!_TRACE_FILE)
+	{
+		_TRACE_FILE = fopen("tracefile.log", "a");
+		if(!_TRACE_FILE)
+			return;
+	}
+	
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(_TRACE_FILE, fmt, args);
+    va_end(args);
+	fflush(_TRACE_FILE);
+}
+
+
 // Called when the dll is loaded
 extern "C" __declspec(dllexport) void OnLoad()
 {
@@ -83,10 +103,11 @@ extern "C" __declspec(dllexport) void OnLoad()
 		// Initialize the other logs
 		g_PhasorLog.reset(new CThreadedLogging(PhasorLog, g_Thread, 0));
 		g_ScriptsLog.reset(new CThreadedLogging(
-			g_LogsDirectory, L"ScriptsLog", g_OldLogsDirectory, g_Thread, 0));
+		g_LogsDirectory, L"scriptslog", g_OldLogsDirectory, g_Thread, 0));
+
 	//	g_ScriptsLog->EnableTimestamp(false);
-		g_GameLog.reset(new CGameLog(g_LogsDirectory, L"GameLog", g_Thread));
-		g_RconLog.reset(new CThreadedLogging(g_LogsDirectory, L"RconLog", g_OldLogsDirectory, g_Thread));
+		g_GameLog.reset(new CGameLog(g_LogsDirectory, L"haloserver", g_Thread));
+		g_RconLog.reset(new CThreadedLogging(g_LogsDirectory, L"rconlog", g_OldLogsDirectory, g_Thread));
 		scriptOutput.reset(new Forwarder(*g_PrintStream, Forwarder::end_point(*g_ScriptsLog)));
 		
 		// Initialize scripting system
@@ -143,6 +164,9 @@ void OnServerClose()
 	g_GameLog.reset();
 	g_RconLog.reset();
 	g_PrintStream.reset();
+
+	if(_TRACE_FILE)
+		fclose(_TRACE_FILE);
 
 	ExitProcess(0);
 }
