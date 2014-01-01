@@ -67,14 +67,23 @@ void l_say(CallHandler& handler, Object::unique_deque& args, Object::unique_list
 void l_respond(CallHandler& handler, Object::unique_deque& args, Object::unique_list&)
 {
 	halo::s_player* player = halo::server::GetPlayerExecutingCommand();
-	COutStream& stream = (player == NULL) ?
-		static_cast<COutStream&>(*g_PrintStream) :
-		static_cast<COutStream&>(*player->console_stream);
-	WriteMessageToStream(stream, *args[0]);
+	if(player == NULL)
+	{
+		//todo: dunno what's this for yet.
+		_TRACE_DEBUG("l_respond %S", *args[0])
+	}
+	else
+	{
+		COutStream& stream = static_cast<COutStream&>(*player->console_stream);
+		WriteMessageToStream(stream, *args[0]);
+	}	
 }
 
 void l_log_msg(CallHandler& handler, Object::unique_deque& args, Object::unique_list&)
 {
+	//todo: lets hope everything is null terminated.
+	// find calls, and rip pout.
+
 	DWORD log_id = ReadNumber<DWORD>(*args[0]);
 	COutStream* stream;
 	switch (log_id)
@@ -84,20 +93,21 @@ void l_log_msg(CallHandler& handler, Object::unique_deque& args, Object::unique_
 			// can't treat the gaming log as a normal stream
 			std::vector<std::wstring> msgs = ReadString(*args[1]);
 			for (size_t x = 0; x < msgs.size(); x++)
-				g_GameLog->WriteLog(kScriptEvent, L"%s", msgs[x].c_str());
+				_TRACE_DEBUG_SCRIPT_EVENT(msgs[x].c_str())
 			return;
 		} break;
+
 	case 2: //phasor log
 		{
-			stream = g_PhasorLog.get();
+			//stream = g_PhasorLog.get();
 		} break;
 	case 3: // rcon log
 		{
-			stream = g_RconLog.get();
+			//stream = g_RconLog.get();
 		} break;
 	case 4: // script log
 		{
-			stream = g_ScriptsLog.get();
+			//stream = g_ScriptsLog.get();
 		} break;
 	default:
 		{
@@ -106,5 +116,8 @@ void l_log_msg(CallHandler& handler, Object::unique_deque& args, Object::unique_
 			handler.RaiseError(ss.str());
 		} break;
 	}
-	WriteMessageToStream(*stream, *args[1]);
+
+	_TRACE_DEBUG("_l_log_msg: %s", *args[1])
+	// todo:
+	//WriteMessageToStream(*stream, *args[1]);
 }
