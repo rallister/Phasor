@@ -163,10 +163,9 @@ namespace halo { namespace server
 		maploader::s_phasor_mapcycle_entry vote_decision;
 		if (mapvote::GetVoteDecision(vote_decision))
 		{
-			if (!maploader::ReplaceHaloMapEntry(loading_map,
-				vote_decision, *g_PhasorLog))
+			if (!maploader::ReplaceHaloMapEntry(loading_map, vote_decision))
 			{
-				*g_PhasorLog << "Map vote ignored due to previous error." << endl;
+				_TRACE_MAP_IGNORED_DUE_TO_PREVIOUS_ERROR()
 			}
 		}
 
@@ -209,8 +208,8 @@ namespace halo { namespace server
 	}
 
 	void __stdcall OnHaloPrint(char* msg)
-	{
-		*g_PrintStream << msg << endl;
+	{		
+		_TRACE_ON_HALO_PRINT(msg)
 		s_player* player = GetPlayerExecutingCommand();
 		if (player) *player->console_stream << msg << endl;
 	}
@@ -227,10 +226,10 @@ namespace halo { namespace server
 		GetMachineIP(*machine, &ip, NULL);
 		
 		bool allow = scripting::events::OnBanCheck(hash, ip);
-
-		if (!allow) { 
-			*g_PhasorLog << "Scripts rejected player. Hash " << hash << 
-				" IP : " << ip << endl;
+	
+		if (!allow) 
+		{ 
+			_TRACE_PLAYER_REJECTED_BY_BAN_SCRIPT(hash, ip)	
 		}
 		return allow;
 	}
@@ -245,16 +244,23 @@ namespace halo { namespace server
 	{
 		// We still want to reject valid hashes with invalid challenges
 		// If we get such a case, someone is trying to steal a hash.
-		if (allow_invalid_hash && strcmp(status, "Invalid authentication") != 0) info->status = 1;
 
-		if (info->status == 1) {
+		if (allow_invalid_hash && strcmp(status, "Invalid authentication") != 0) 
+			info->status = 1;
+
+		_TRACE_ON_HASH_VALIDATION(info)
+		if (info->status == 1) 
+		{
 			PhasorMachine* machine = FindMachineById(info->machineId);
 			machine->hash_validated = true;
 			
 			s_player* player = game::getPlayerFromHash(info->hash);
-			if (player) player->checkAndSetAdmin();
-		} else {
-			*g_PrintStream << "Machine " << info->machineId << " is being rejected because: " << status << endl;
+			if (player) 
+				player->checkAndSetAdmin();
+		} 
+		else 
+		{			
+			_TRACE_ON_HASH_REJECTED(info->machineId, status)						
 		}
 	}
 
@@ -295,13 +301,14 @@ namespace halo { namespace server
 		std::vector<std::string> tokens = TokenizeArgs(command);
 		if (!tokens.size()) return e_command_result::kProcessed; 
 
-		if (!can_execute) {
-			TempForwarder echo(*g_PrintStream, 
-				TempForwarder::end_point(*g_RconLog));
-
-			if (exec_player->authenticating_hash) {
+		if (!can_execute) 
+		{
+			if (exec_player->authenticating_hash) 
+			{
 				*exec_player->console_stream << "Please wait while your hash is authenticated.." << endl;
-			} else {
+			} 
+			else 
+			{
 				// Find just the command name
 				std::string commandName = command.substr(0, command.find(' '));
 
@@ -314,26 +321,26 @@ namespace halo { namespace server
 				{
 				case Admin::E_NOT_ADMIN:
 					{
-						echo << L"An unauthorized player is attempting to use RCON:" << endl;
-						echo << L"Name: '" << exec_player->mem->playerName <<
-							L"' Hash: " << exec_player->hash << endl;
+						_TRACE_PROCESS_COMMAND_ERR_NOTADMIN(exec_player) 
+
+						
 					} break;
 				case Admin::E_NOT_ALLOWED:
 					{
-						echo << L"An authorized player is attempting to use an unauthorized command:" << endl;
-						echo << L"Name: '" << exec_player->mem->playerName <<
-							L"' Hash: " << exec_player->hash << " Authed as: '" 
-							<< authName << "'" << endl;
-						echo << "Command: '" << commandName << "'" << endl;
+						_TRACE_PROCESS_COMMAND_ERR_NOTALLOWED(exec_player)
+
 					} break;
 				case Admin::E_OK:
 					{
 						can_execute = true;
-						echo << L"Executing ' " << command << L" ' from " <<
-							exec_player->mem->playerName;
-						if (authName.size())
-							echo << L" (authed as '" <<	authName << L"').";
-						echo << endl;
+						
+						/*
+							if (authName.size())
+								echo << L" (authed as '" <<	authName << L"').";						
+						*/
+
+						_TRACE_PROCESS_COMMAND_OK(exec_player);
+
 					} break;
 				}
 
@@ -342,12 +349,31 @@ namespace halo { namespace server
 		}
 
 		e_command_result result = e_command_result::kProcessed;
-		if (can_execute) {
-			COutStream& outStream = (exec_player == NULL) ? 
-					static_cast<COutStream&>(*g_PrintStream) : 
-					static_cast<COutStream&>(*exec_player->console_stream);
+		if (can_execute) 
+		{
+			if(exec_player == NULL)
+			{
 
-			result = commands::ProcessCommand(command, outStream, exec_player);
+				// _TRACE_PROCESS_COMMAND_RESULT(exec_player);				
+				// ah well, will need to go in, lower down though commands to expect a stream
+				// to write to, some commands from hooks will need to write as well.
+				RecordStream rs;
+				COutStream& outStream = static_cast<COutStream&>(rs);
+				result = commands::ProcessCommand(command, outStream, exec_player);	
+
+				std::list<std::wstring> anyFeedback = rs.getRecord();
+				auto itr = anyFeedback.begin();
+
+				for (auto iterator = anyFeedback.begin(); iterator != anyFeedback.end(); ++iterator) {
+					_TRACE_STREAM_COMMAND_RESULT(*iterator);
+				}
+			}
+			else
+			{
+				// player in game?
+				COutStream& outStream = static_cast<COutStream&>(*exec_player->console_stream);				
+				result = commands::ProcessCommand(command, outStream, exec_player);
+			}
 		}
 
 		if (exec_player == NULL && result == e_command_result::kProcessed) {
@@ -413,9 +439,12 @@ namespace halo { namespace server
 	void NotifyServerOfTeamChange(const halo::s_player& player)
 	{
 		// build the packet that notifies the server of the team change
-		BYTE d[4] = {(BYTE)player.memory_id, (BYTE)player.mem->team, 0x18, 0};
+		BYTE d[4] = {(BYTE)player.memory_id, (BYTE)player.mem->team, 0x18, 0};
+
 		// Gotta pass a pointer to the data
-		DWORD d_ptr = (DWORD)&d;		BYTE buffer[8192];		DWORD retval = server::BuildPacket(buffer, 0, 0x1A, 0, (LPBYTE)&d_ptr, 0, 1, 0);
+		DWORD d_ptr = (DWORD)&d;
+		BYTE buffer[8192];
+		DWORD retval = server::BuildPacket(buffer, 0, 0x1A, 0, (LPBYTE)&d_ptr, 0, 1, 0);
 		server::AddPacketToGlobalQueue(buffer, retval, 1, 1, 0, 1, 3);
 	}
 

@@ -104,8 +104,10 @@ namespace halo {
 	{
 		s_tag_entry* dmg_tag = LookupTag(s_tag_type("jpt!"), "globals\\vehicle_hit_environment");
 		if (!dmg_tag) {
+			
 			server::s_server_info* info = server::GetServerStruct();
-			*g_PhasorLog << "Map " << info->map_name << " doesn't have globals\\vehicle_hit_environment" << endl;
+		
+		    _TRACE_DEBUG_APPLYING_VEHICLE_DAMAGE_NO_VEHICLE_HIT(info->map_name)
 			return false;
 		}
 

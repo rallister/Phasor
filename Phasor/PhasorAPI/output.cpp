@@ -22,7 +22,8 @@ void WriteMessageToStream(COutStream& stream, Object& message)
 void sendconsoletext(CallHandler& handler, Object& message, Object& playerObj, bool strict=true)
 {
 	halo::s_player* player = ReadPlayer(handler, playerObj, strict);
-	if (!player) return;
+	if (!player) 
+		return;
 	WriteMessageToStream(*player->console_stream, message);
 }
 
@@ -30,8 +31,12 @@ void sendconsoletext(CallHandler& handler, Object& message, Object& playerObj, b
 void l_hprintf(CallHandler& handler, Object::unique_deque& args, Object::unique_list&)
 {
 	// backwards compatibility with old Phasor.
-	if (args.size() == 2) return sendconsoletext(handler, *args[0], *args[1], false);
-	WriteMessageToStream(*g_PrintStream, *args[0]);
+	if (args.size() == 2) 
+		return sendconsoletext(handler, *args[0], *args[1], false);
+
+	// 
+	_TRACE_CONSOLE("l_hprintf DONT HAVE");
+
 }
 
 // Send console text to the specified player (strict)

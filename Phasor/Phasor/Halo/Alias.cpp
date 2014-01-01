@@ -56,7 +56,8 @@ namespace halo { namespace alias
 		if (has_error) {
 			*stream << "An error occurred and your query wasn't successful. "
 				<< "Check the Phasor log for details" << endl;
-			*g_PhasorLog << "ALIAS QUERY ERROR : " << err_msg << endl;
+
+			// *g_PhasorLog << "ALIAS QUERY ERROR : " << err_msg << endl;
 			return;
 		}
 		ProcessResult();
@@ -171,19 +172,23 @@ namespace halo { namespace alias
 		}
 		catch (SQLiteError& error)
 		{
-			g_PhasorLog->print("Cannot create alias database, error '%s'", error.what());
+			_TRACE_ALIAS_ERR_CANT_CREATE_DB(error.what())
+			
 			aliasdb.reset();
 		}
 	}
 
 	void OnPlayerJoin(s_player& player)
 	{
+		/* todo: rip out alias.
 		if (!do_track) return;
+		
 		if (aliasdb != nullptr) {
 			std::shared_ptr<CAliasEvent> e(new AliasEventAddPlayer(g_PrintStream->clone(), 
 				player.hash, player.mem->playerName));
 			(void)ExecuteEvent(e);
 		}
+		*/
 	}
 
 	bool ExecuteEvent(std::shared_ptr<CAliasEvent> e)

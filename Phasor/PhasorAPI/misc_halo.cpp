@@ -35,7 +35,8 @@ void l_applycamo(CallHandler& handler, Object::unique_deque& args, Object::uniqu
 void svcmd_redirect(Object::unique_list& results, const std::string& cmd,
 	bool want_result, halo::s_player* player, COutStream& baseStream)
 {
-	if (!want_result) return server::ExecuteServerCommand(cmd, player);
+	if (!want_result) 
+		return server::ExecuteServerCommand(cmd, player);
 
 	RecordStream record;
 	NotifyStream _(baseStream, record);
@@ -49,6 +50,25 @@ void svcmd_redirect(Object::unique_list& results, const std::string& cmd,
 		narrowed.push_back(NarrowString(*itr));
 
 	AddResultTable(narrowed, results);
+}
+
+// add this if no stream
+void svcmd_redirect_noplayer(Object::unique_list& results, const std::string& cmd, bool want_result, halo::s_player* player)
+{
+	if (!want_result) 
+		return server::ExecuteServerCommand(cmd, player);
+
+	RecordStream record;	
+
+	server::ExecuteServerCommand(cmd, player);
+
+	const std::list<std::wstring>& output = record.getRecord();
+
+	std::vector<std::string> narrowed;
+	narrowed.reserve(output.size());
+
+	for (auto itr = output.cbegin(); itr != output.cend(); ++itr)
+		_TRACE_STREAM_COMMAND_RESULT(*itr);	
 }
 
 // will change this when i rework the script system
@@ -66,7 +86,11 @@ void l_svcmd(CallHandler& handler, Object::unique_deque& args, Object::unique_li
 	if (args.size() == 2) want_result = ReadBoolean(*args[1]);
 
 	check_script_reload(handler, cmd);
-	return svcmd_redirect(results, cmd, want_result, NULL, *g_PrintStream);
+
+	// i take it here print result of command to print stream
+	// if player is null.
+	// and the command also takes the fuckin stream from everyone.
+	return svcmd_redirect_noplayer(results, cmd, want_result, NULL);
 }
 
 void l_svcmdplayer(CallHandler& handler, Object::unique_deque& args, Object::unique_list& results)

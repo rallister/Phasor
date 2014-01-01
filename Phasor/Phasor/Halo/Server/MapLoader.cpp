@@ -403,46 +403,53 @@ MAP_NOT_FOUND:
 
 		static bool BuildNewEntry(const std::string& map,
 			const std::wstring& gametype, const std::vector<std::string>& scripts,
-			s_mapcycle_entry& entry, COutStream& stream)
+			s_mapcycle_entry& entry)
 		{
 			// Get the gametype data
-			if (!gametypes::ReadGametypeData(gametype, entry.gametype_data, 
-				sizeof(entry.gametype_data)))
+			if (!gametypes::ReadGametypeData(gametype, entry.gametype_data, sizeof(entry.gametype_data)))
 			{ 
-				stream << L"Cannot read gametype data for '" << gametype << L"'" << endl;
+
+				_TRACE_DEBUG_CANT_READ_GAMETYPE(gametype)
+				// dodgy, this stream is passed around, just to read err message from it, no thanks.
+				/// stream << L"Cannot read gametype data for '" << gametype << L"'" << endl;
 				return false; 
 			}
 
 			// Allocate memory for the map
 			entry.map = (char*)GlobalAlloc(GMEM_FIXED, kMaxMapLength);
+
 			strcpy_s(entry.map, kMaxMapLength, map.c_str());
 
 			// Allocate memory for the gametype
 			{
 				std::string n_gametype = NarrowString(gametype);
+
 				DWORD len = n_gametype.size() + 1;
+
 				entry.gametype = (char*)GlobalAlloc(GMEM_FIXED, len);
+
 				strcpy_s(entry.gametype, len, n_gametype.c_str());
 			}
 
 			if (scripts.size() > 0) {
 				DWORD size = sizeof(s_script_list);
-				// Allocate memory for the scripts
-				entry.scripts = (s_script_list*)GlobalAlloc(GMEM_FIXED, 
-					size);
+				
+				entry.scripts = (s_script_list*)GlobalAlloc(GMEM_FIXED, size);
+
 				entry.scripts->count = scripts.size();
-				entry.scripts->script_names = (char**)GlobalAlloc(GMEM_FIXED,
-					sizeof(entry.scripts->script_names[0])*scripts.size());
+
+				entry.scripts->script_names = (char**)GlobalAlloc(GMEM_FIXED, sizeof(entry.scripts->script_names[0])*scripts.size());
 
 				// Populate the script data
 				for (size_t x = 0; x < scripts.size(); x++)
 				{
-					entry.scripts->script_names[x] = (char*)
-						GlobalAlloc(GMEM_FIXED, scripts[x].size() + 1);
-					strcpy_s(entry.scripts->script_names[x], 
-						scripts[x].size() + 1, scripts[x].c_str());
+					entry.scripts->script_names[x] = (char*)GlobalAlloc(GMEM_FIXED, scripts[x].size() + 1);
+
+					strcpy_s(entry.scripts->script_names[x], scripts[x].size() + 1, scripts[x].c_str());
 				}
-			} else entry.scripts = NULL;
+
+			} 
+			else entry.scripts = NULL;
 
 			return true;
 		}
@@ -453,13 +460,18 @@ MAP_NOT_FOUND:
 			if (cur_count >= allocated_count) {
 				if (!Expand(3)) return false;
 			}
-			bool success = BuildNewEntry(game.map, game.gametype, game.scripts,
-				*(start + cur_count), out);
-			if (!success) return false;
+
+			bool success = BuildNewEntry(game.map, game.gametype, game.scripts,	*(start + cur_count));
+
+			if (!success) 
+				return false;
+
 			cur_count++;
-			if (active)	{
+			if (active)	
+			{
 				g_mapcycle_header->cur_count = cur_count;
 			}
+
 			return true;
 		}
 
@@ -469,8 +481,8 @@ MAP_NOT_FOUND:
 			size_t old_size = cur_count;
 			if (!Reserve(games.size())) return false;
 			for (size_t x = 0; x < games.size(); x++) {
-				if (!AddGame(games[x], out)) { //todo: test
-					// on error roll back all changes
+				if (!AddGame(games[x], out)) 
+				{ 
 					Free(start + old_size, x);
 					cur_count = old_size;
 					return false;
@@ -595,8 +607,7 @@ MAP_NOT_FOUND:
 	// Effectively executes sv_map to run a new game
 	bool LoadGame(const s_phasor_mapcycle_entry& game, COutStream& out)
 	{
-		std::unique_ptr<CHaloMapcycle> new_cycle = 
-			std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
+		std::unique_ptr<CHaloMapcycle> new_cycle = std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
 		
 		if (!new_cycle->AddGame(game, out)) {
 			out << L"Previous errors prevent the game from being started." << endl;
@@ -609,17 +620,15 @@ MAP_NOT_FOUND:
 		return true;
 	}
 
-	bool ReplaceHaloMapEntry(s_mapcycle_entry* old, 
-		const s_phasor_mapcycle_entry& new_entry,
-		COutStream& out)
+	bool ReplaceHaloMapEntry(s_mapcycle_entry* old, const s_phasor_mapcycle_entry& new_entry)
 	{
 		s_mapcycle_entry tmp;
 		
-		if (!CHaloMapcycle::BuildNewEntry(new_entry.map,
-			new_entry.gametype, new_entry.scripts, tmp, out))
+		if (!CHaloMapcycle::BuildNewEntry(new_entry.map, new_entry.gametype, new_entry.scripts, tmp))
 		{
 			return false;
 		}
+
 		CHaloMapcycle::Free(old, 1);
 		*old = tmp;	
 		return true;
@@ -668,17 +677,20 @@ MAP_NOT_FOUND:
 		if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
 
 		// If we're in the mapcycle add the data to the current playlist
-		if (in_mapcycle) {
-			if (!cycle_loader->GetActive().AddGame(entry, out)) {
+		if (in_mapcycle) 
+		{
+			if (!cycle_loader->GetActive().AddGame(entry, out)) 
+			{
 				out << L"Cannot write addition to current cycle. Addition ignored."
 					<< endl;
+
 				return e_command_result::kProcessed;
 			}
 		}
 
 		mapcycleList.push_back(entry);
-		out << entry.map << " (game: '" << entry.gametype << "') has been added to the mapcycle."
-			<< endl;				
+
+		out << entry.map << " (game: '" << entry.gametype << "') has been added to the mapcycle." << endl;				
 
 		return e_command_result::kProcessed;
 	}

@@ -95,13 +95,15 @@ namespace halo { namespace game {
 		case 1: // just ended (in game scorecard is shown)
 			{
 				afk_detection::Disable();
-				g_GameLog->WriteLog(kGameEnd, L"The game has ended.");
-				*g_PrintStream << "The game is ending..." << endl;
+
+				_TRACE_GAME_END_JUST_NOW()
 
 			} break;
 
 		case 2:
 			{
+				_TRACE_GAME_END_CLEANUP()
+
 				objects::ClearManagedObjects();
 			} break;
 		}	
@@ -116,8 +118,9 @@ namespace halo { namespace game {
 		afk_detection::Enable();
 		halo::BuildTagCache();
 		
-		g_GameLog->WriteLog(kGameStart, "A new game has started on map %s", map);
-
+		//todo: try to get gametype as well.
+		_TRACE_GAME_START(map)
+		
 		scripting::events::OnNewGame(map);
 	}
 
@@ -125,14 +128,17 @@ namespace halo { namespace game {
 	void __stdcall OnPlayerWelcome(DWORD playerId)
 	{
 		if (!valid_index(playerId)) {
-			*g_PhasorLog << "Player joined with invalid index??" << endl;
+			_TRACE_PLAYER_JOIN_INVALID_INDEX(playerId)
 			return;
 		}
+
 		PlayerList[playerId].reset(new s_player(playerId));
 		s_player* player = getPlayer(playerId);	
-		g_GameLog->WriteLog(kPlayerJoin, L"%s (%s ip: %s:%i)", 
-			player->mem->playerName, WidenString(player->hash).c_str(),
-			WidenString(player->ip).c_str(), player->port);
+
+		_TRACE_PLAYER_JOIN(player->mem->playerName, WidenString(player->hash).c_str(),	WidenString(player->ip).c_str(), player->port)
+
+		_TRACE_PLAYER_DUMP(player)
+
 		alias::OnPlayerJoin(*player);
 		scripting::events::OnPlayerJoin(*player);
 	}
@@ -140,16 +146,16 @@ namespace halo { namespace game {
 	// Called when a player quits
 	void __stdcall OnPlayerQuit(DWORD playerId)
 	{
-		if (!valid_index(playerId)) {
-			*g_PhasorLog << "Player left with invalid index??" << endl;
+		if (!valid_index(playerId)) {			
+			_TRACE_PLAYER_LEFT_INVALID_INDEX(playerId)
 			return;
 		}
 		s_player* player = getPlayer(playerId);
 
-		if (player) {			
-			g_GameLog->WriteLog(kPlayerLeave, L"%s (%s)", 
-				player->mem->playerName, WidenString(player->hash).c_str()
-				);
+		if (player)
+		{			
+			_TRACE_PLAYER_LEFT( player->mem->playerName, WidenString(player->hash).c_str(),	WidenString(player->ip).c_str(), player->port)
+			_TRACE_PLAYER_DUMP(player)
 
 			scripting::events::OnPlayerLeave(*player);
 			PlayerList[playerId].reset();
@@ -174,9 +180,9 @@ namespace halo { namespace game {
 				player->mem->team);
 		}
 
-		if (!allow) {
-			g_GameLog->WriteLog(kPlayerChange, L"Blocked %s from changing team.", 
-				player->mem->playerName);
+		if (!allow) 
+		{
+			_TRACE_TEAM_CHANGE_BLOCKED(player->mem->playerName)		
 		}
 
 		return allow;
@@ -276,16 +282,14 @@ namespace halo { namespace game {
 		sender->afk->MarkPlayerActive();
 
 		std::string change_msg;
-		bool allow = scripting::events::OnServerChat(sender, NarrowString(chat->msg),
-			chat->type, change_msg);
+		bool allow = scripting::events::OnServerChat(sender, NarrowString(chat->msg), chat->type, change_msg);
 
 		if (!allow) return;
 		if (change_msg.size()) send_msg = WidenString(change_msg);
 		if (!server::mapvote::OnServerChat(*sender, chat->msg)) return;
 
-		g_GameLog->WriteLog(kPlayerChat, L"[%s] %s: %s", typeValues[chat->type], 
-			sender->mem->playerName, send_msg.c_str());
-
+		_TRACE_CHAT(typeValues[chat->type], sender->mem->playerName, send_msg.c_str())
+		
 		DispatchChat(chat->type, send_msg.c_str(), sender);
 	}
 
@@ -323,45 +327,43 @@ namespace halo { namespace game {
 		{
 		case 1: // fall dmg or server kill
 			{
-				if (victim->sv_killed)	mode = 0;
-	
-				g_GameLog->WriteLog(kPlayerDeath, L"%s died (%i).", 
-					victim->mem->playerName, mode);
+				if (victim->sv_killed)	
+					mode = 0;			
+					
+				_TRACE_DEATH_DAMAGE(victim->mem->playerName, mode)
 
 			} break;
 
 		case 2: // killed by guardians
 			{
-				g_GameLog->WriteLog(kPlayerDeath, L"%s was killed by the guardians.", 
-					victim->mem->playerName);
+				_TRACE_DEATH_GUARDIANS(victim->mem->playerName)
 			} break;
 
 		case 3: // killed by a vehicle
 			{
-				g_GameLog->WriteLog(kPlayerDeath, L"%s was killed by a vehicle.", 
-					victim->mem->playerName);
+				_TRACE_DEATH_VEHICLE(victim->mem->playerName)
+
 			} break;
 
 		case 4: // killed by another player
 			{
-				if (killer) {
-					g_GameLog->WriteLog(kPlayerDeath, L"%s was killed by %s.", 
-						victim->mem->playerName, killer->mem->playerName);
+				if (killer) 
+				{				
+					_TRACE_DEATH_KILL(killer->mem->playerName,victim->mem->playerName)
 				}
 			} break;
 
 		case 5: // betrayed
-			{
+			{				
 				if (killer) {
-					g_GameLog->WriteLog(kPlayerDeath, L"%s was betrayed by %s.", 
-						victim->mem->playerName, killer->mem->playerName);
+					_TRACE_DEATH_BETRAY(killer->mem->playerName, victim->mem->playerName)
 				}
 			} break;
 
 		case 6: // suicide
 			{
-				g_GameLog->WriteLog(kPlayerDeath, L"%s committed suicide.", 
-					victim->mem->playerName);
+				_TRACE_DEATH_SUICIDE(victim->mem->playerName)
+			
 			} break;
 		}
 			

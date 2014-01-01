@@ -141,7 +141,8 @@ namespace halo { namespace server { namespace gametypes {
 			return false;
 
 		BYTE* bytes = itr->second;
-		return memcpy((char*)out, (char*)bytes ,outSize-4); // meh.
+		memcpy((char*)out, (char*)bytes ,outSize-4);
+		return true;
 	}
 
 	bool IsValidGametype(const std::wstring& gametype)

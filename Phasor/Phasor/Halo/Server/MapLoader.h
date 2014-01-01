@@ -50,9 +50,7 @@ namespace halo { namespace server { namespace maploader
 	// Effectively executes sv_map to run a new game
 	bool LoadGame(const s_phasor_mapcycle_entry& game, COutStream& out);
 
-	bool ReplaceHaloMapEntry(s_mapcycle_entry* old, 
-		const s_phasor_mapcycle_entry& new_entry,
-		COutStream& out);
+	bool ReplaceHaloMapEntry(s_mapcycle_entry* old,	const s_phasor_mapcycle_entry& new_entry);
 
 	// Checks if a map exists
 	bool IsValidMap(const std::string& map);

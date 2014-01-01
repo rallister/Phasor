@@ -20,8 +20,11 @@ namespace halo
 	s_player::s_player(int memory_id) : memory_id(memory_id), sv_killed(false),
 		force_entered(false)
 	{
-		*g_PrintStream << "New player " << memory_id << endl;
 		mem = GetPlayerMemory(memory_id);
+
+		// this could be a prob.
+		_TRACE_DEBUG("New Player %S", mem->playerName)
+		
 		afk.reset(new afk_detection::CAFKDetection(*this, g_Timers));
 		console_stream.reset(new PlayerConsoleStream(*this));	
 		chat_stream.reset(new PlayerChatStream(*this));
@@ -32,7 +35,8 @@ namespace halo
 		server::GetMachineHash(*machine->machine, hash);
 		
 		if (Admin::isChallengeEnabled()) {
-			if (machine->hash_validated) checkAndSetAdmin();
+			if (machine->hash_validated) 
+				checkAndSetAdmin();
 			else { // wait for response from gamespy
 				authenticating_hash = true;
 				is_admin = false;
@@ -42,7 +46,10 @@ namespace halo
 
 	s_player::~s_player()
 	{
-		*g_PrintStream << "Player " << memory_id << " left" << endl;
+		_TRACE_DEBUG("player destructor %d", memory_id)
+
+		//
+		// *g_PrintStream << "Player " << memory_id << " left" << endl;
 	}
 
 	void s_player::checkAndSetAdmin() {

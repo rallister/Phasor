@@ -224,7 +224,9 @@ private:
 protected:
 	virtual bool Write(const std::wstring& str)
 	{
-		if (str.size() != 0) output.push_back(str);
+		if (str.size() != 0) 
+			output.push_back(str);
+
 		return true;
 	}
 
