@@ -96,14 +96,13 @@ extern "C" __declspec(dllexport) void OnLoad()
 
 		halo::InstallHooks();
 
-		if (!g_Thread.run()) {
+		/*if (!g_Thread.run()) {
 			throw std::exception("cannot start the auxiliary thread.");
-		}
+		}*/
 
 		// Initialize the other logs
 		g_PhasorLog.reset(new CThreadedLogging(PhasorLog, g_Thread, 0));
-		g_ScriptsLog.reset(new CThreadedLogging(
-		g_LogsDirectory, L"scriptslog", g_OldLogsDirectory, g_Thread, 0));
+		g_ScriptsLog.reset(new CThreadedLogging(g_LogsDirectory, L"scriptslog", g_OldLogsDirectory, g_Thread, 0));
 
 	//	g_ScriptsLog->EnableTimestamp(false);
 		g_GameLog.reset(new CGameLog(g_LogsDirectory, L"haloserver", g_Thread));
@@ -114,19 +113,19 @@ extern "C" __declspec(dllexport) void OnLoad()
 		g_Scripts.reset(new scripting::Scripts(*scriptOutput,g_ScriptsDirectory));
 
 		// Load all scripts in scripts\\persistent
-		PhasorLog << "Loading persistent scripts" << endl; 
+		//PhasorLog << "Loading persistent scripts" << endl; 
 		g_Scripts->LoadPersistentScripts();
 
-		PhasorLog << L"Processing earlyinit.txt" << endl;
+		//PhasorLog << L"Processing earlyinit.txt" << endl;
 		LoadEarlyInit(PhasorLog);
 
-		PhasorLog << L"Initializing admin system" << endl;
+		//PhasorLog << L"Initializing admin system" << endl;
 		Admin::initialize(&PhasorLog);
 
-		PhasorLog << L"Initializing alias system" << endl;
+		//PhasorLog << L"Initializing alias system" << endl;
 		halo::alias::Initialize();
 
-		PhasorLog << L"Phasor was successfully initialized." << endl;
+		//PhasorLog << L"Phasor was successfully initialized." << endl;
 	}
 	catch (std::exception& e)
 	{
