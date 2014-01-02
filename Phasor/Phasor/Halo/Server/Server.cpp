@@ -303,7 +303,7 @@ namespace halo { namespace server
 
 		std::string command = cmd;
 
-		_TRACE("%S", command)
+		_TRACE_PROCESS_COMMAND(WidenString(command).c_str())
 
 		std::vector<std::string> tokens = TokenizeArgs(command);
 		if (!tokens.size()) return e_command_result::kProcessed; 
@@ -360,28 +360,20 @@ namespace halo { namespace server
 		{
 			if(exec_player == NULL)
 			{
+				//TODO: lua outputs to g_PrintStream, via forwarder initialised at the start.
+				// will need to address that.
+				// since we are trying to get rid of it, will need to sort it out some other time.
+				
 
 				// _TRACE_PROCESS_COMMAND_RESULT(exec_player);				
 				// ah well, will need to go in, lower down though commands to expect a stream
 				// to write to, some commands from hooks will need to write as well.
-				/*
-				RecordStream record;	
-
-				
-				const std::list<std::wstring>& output = record.getRecord();
-
-				std::vector<std::string> narrowed;
-				narrowed.reserve(output.size());
-
-				for (auto itr = output.cbegin(); itr != output.cend(); ++itr)
-				*/
+				// does not print results of the lua commands.
 
 				RecordStream rs;
-
-				result = commands::ProcessCommand(command, rs, exec_player);	
-			
-				const std::list<std::wstring>& anyFeedback = rs.getRecord();
-		
+				//COutStream& outStream = static_cast<COutStream&>(rs);
+				result = commands::ProcessCommand(command, rs, exec_player);				
+				const std::list<std::wstring>& anyFeedback = rs.getRecord();				
 				for (auto iterator = anyFeedback.begin(); iterator != anyFeedback.end(); ++iterator) {
 					_TRACE_STREAM_COMMAND_RESULT((*iterator).c_str());
 				}
@@ -389,8 +381,21 @@ namespace halo { namespace server
 			else
 			{
 				// player in game?
-				COutStream& outStream = static_cast<COutStream&>(*exec_player->console_stream);				
+				COutStream& outStream = static_cast<COutStream&>(*exec_player->console_stream);
 				result = commands::ProcessCommand(command, outStream, exec_player);
+
+				/*
+				//todo: try this: this works but prevents lua chat commands from running.
+				RecordStream rs;
+				result = commands::ProcessCommand(command, rs, exec_player);
+				COutStream& outStream = static_cast<COutStream&>(*exec_player->console_stream);
+				const std::list<std::wstring>& anyFeedback = rs.getRecord();
+						
+				for (auto iterator = anyFeedback.begin(); iterator != anyFeedback.end(); ++iterator) {
+					outStream << *iterator;
+					_TRACE_STREAM_COMMAND_RESULT((*iterator).c_str());
+				}
+				*/
 			}
 		}
 
@@ -398,8 +403,7 @@ namespace halo { namespace server
 			// save the command for memory (arrow keys)
 			s_command_cache* cache = (s_command_cache*)ADDR_CMDCACHE;
 			cache->count = (cache->count + 1) % 8;
-			strcpy_s(cache->commands[cache->count], sizeof(cache->commands[cache->count]),
-				cmd);
+			strcpy_s(cache->commands[cache->count], sizeof(cache->commands[cache->count]), cmd);
 			cache->cur = 0xFFFF;
 		}
 		return result;

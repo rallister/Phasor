@@ -50,6 +50,7 @@ extern FILE * _TRACE_FILE;
 // widens string (might optimise the Dedicated server is running blah blah message
 // need it for fucked up names.
 #define _TRACE_ON_HALO_PRINT(message) _TRACE("%S\r\n", message)
+#define _TRACE_PROCESS_COMMAND(command) _TRACE("%S\r\n", command)
 // if streams fail search for this.
 #define _TRACE_STREAM_COMMAND_RESULT(str) _TRACE("%S\r\n", (str))
 
