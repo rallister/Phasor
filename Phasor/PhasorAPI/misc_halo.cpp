@@ -58,6 +58,7 @@ void svcmd_redirect_noplayer(Object::unique_list& results, const std::string& cm
 	if (!want_result) 
 		return server::ExecuteServerCommand(cmd, player);
 
+	// record here is not hooked up, how does it get result?
 	RecordStream record;	
 
 	server::ExecuteServerCommand(cmd, player);

@@ -34,8 +34,7 @@ void l_hprintf(CallHandler& handler, Object::unique_deque& args, Object::unique_
 	if (args.size() == 2) 
 		return sendconsoletext(handler, *args[0], *args[1], false);
 
-	// 
-	_TRACE_CONSOLE("l_hprintf DONT HAVE");
+	_TRACE_CONSOLE("%S\r\n", *args[0]);
 
 }
 
@@ -70,7 +69,7 @@ void l_respond(CallHandler& handler, Object::unique_deque& args, Object::unique_
 	if(player == NULL)
 	{
 		//todo: dunno what's this for yet.
-		_TRACE_DEBUG("l_respond %S", *args[0])
+		_TRACE_DEBUG("l_respond %S\r\n", *args[0])
 	}
 	else
 	{

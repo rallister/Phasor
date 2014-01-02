@@ -207,9 +207,14 @@ namespace halo { namespace server
 		}
 	}
 
+	//xxxra: this method is a ticker which shows the scroll window in between.
 	void __stdcall OnHaloPrint(char* msg)
-	{		
-		_TRACE_ON_HALO_PRINT(msg)
+	{	
+		if(strcmp(msg, "Use the 'sv_end_game' command to stop the game.") == 0)
+			return;
+
+		_TRACE_ON_HALO_PRINT(WidenString(msg).c_str())
+
 		s_player* player = GetPlayerExecutingCommand();
 		if (player) *player->console_stream << msg << endl;
 	}
@@ -298,6 +303,8 @@ namespace halo { namespace server
 
 		std::string command = cmd;
 
+		_TRACE("%S", command)
+
 		std::vector<std::string> tokens = TokenizeArgs(command);
 		if (!tokens.size()) return e_command_result::kProcessed; 
 
@@ -357,15 +364,26 @@ namespace halo { namespace server
 				// _TRACE_PROCESS_COMMAND_RESULT(exec_player);				
 				// ah well, will need to go in, lower down though commands to expect a stream
 				// to write to, some commands from hooks will need to write as well.
+				/*
+				RecordStream record;	
+
+				
+				const std::list<std::wstring>& output = record.getRecord();
+
+				std::vector<std::string> narrowed;
+				narrowed.reserve(output.size());
+
+				for (auto itr = output.cbegin(); itr != output.cend(); ++itr)
+				*/
+
 				RecordStream rs;
-				COutStream& outStream = static_cast<COutStream&>(rs);
-				result = commands::ProcessCommand(command, outStream, exec_player);	
 
-				std::list<std::wstring> anyFeedback = rs.getRecord();
-				auto itr = anyFeedback.begin();
-
+				result = commands::ProcessCommand(command, rs, exec_player);	
+			
+				const std::list<std::wstring>& anyFeedback = rs.getRecord();
+		
 				for (auto iterator = anyFeedback.begin(); iterator != anyFeedback.end(); ++iterator) {
-					_TRACE_STREAM_COMMAND_RESULT(*iterator);
+					_TRACE_STREAM_COMMAND_RESULT((*iterator).c_str());
 				}
 			}
 			else
