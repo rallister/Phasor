@@ -158,7 +158,7 @@ namespace Addresses
 			throw std::exception(err.c_str());
 		}
 
-		_TRACE_DEBUG("%-25s : %-25s %08X", __FUNCTION__, desc, dwAddress)
+		_TRACE_DEBUG("\r\n%-25s : %-25s %08X", __FUNCTION__, desc, dwAddress)
 		
 		return dwAddress;
 	}
@@ -171,7 +171,7 @@ namespace Addresses
 		//DWORD dwAddress = (DWORD)data + result + offset;
 		ReadBytes(dwAddress, &dwAddress, 4);
 
-		_TRACE_DEBUG("%-25s : %-25s %08X", __FUNCTION__, desc, dwAddress)
+		_TRACE_DEBUG("\r\n%-25s : %-25s %08X", __FUNCTION__, desc, dwAddress)
 
 		return dwAddress;
 	}

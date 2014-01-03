@@ -207,16 +207,22 @@ namespace halo { namespace server
 		}
 	}
 
-	//xxxra: this method is a ticker which shows the scroll window in between.
+	// thread reads command line periodically and calls this method.
 	void __stdcall OnHaloPrint(char* msg)
-	{	
-		if(strcmp(msg, "Use the 'sv_end_game' command to stop the game.") == 0)
+	{		
+		// Dedicated server is running on map blah blah
+		// Use the 'sv_end_game' command to stop the game.		
+		if(!*msg || *msg == 'U' || *msg == 'D') 
 			return;
 
-		_TRACE_ON_HALO_PRINT(WidenString(msg).c_str())
+		//if(*msg == 'D') 
+		//{	_TRACE_ON_HALO_PRINT(WidenString(msg).c_str())
+		//	return;
+		//}
 
 		s_player* player = GetPlayerExecutingCommand();
-		if (player) *player->console_stream << msg << endl;
+		if (player) 
+			*player->console_stream << msg << endl;
 	}
 
 	bool __stdcall OnHaloBanCheck(char* hash, s_machine_info* machine)
