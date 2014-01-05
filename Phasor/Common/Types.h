@@ -498,7 +498,8 @@ enum e_command_result
 		WORD deaths; // 0x00AE
 		WORD suicides; // 0x00B0
 		// cbf with the rest
-		UNKNOWN(0x14e);
+		vect3d oldCamera;
+		UNKNOWN(0x142); // without old camera was 14e
 	};
 	static_assert(sizeof(s_player_structure) == 0x0200, "bad");
 	#pragma pack(pop)

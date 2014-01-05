@@ -1,26 +1,18 @@
 #include <windows.h>
 #include <stdio.h>
 #include "main.h"
-#include "Phasor/Logging.h"
-#include "Phasor/ThreadedLogging.h"
-#include "Phasor/GameLogging.h"
+
 #include "Hooks/Directory.h"
-#include "Scripting.h"
-#include "Phasor/Commands.h"
-#include "Phasor/Admin.h"
 #include "Hooks/Addresses.h"
 #include "Hooks/Hooks.h"
-#include "Phasor/Halo/Alias.h"
 #include "Hooks/MapLoader.h"
 #include "Hooks/Gametypes.h"
 #include "Hooks/CrashHandler.h"
 #include "Common/Globals.h"
 #include "Common/FileIO.h"
 #include "Common/MyString.h"
-#include "Phasor/Halo/HaloStreams.h"
-#include "Phasor/Halo/Game/Game.h"
 
-#define WAIT_AND_QUIT Sleep(10000); exit(1);
+#define WAIT_AND_QUIT Sleep(1000); exit(1);
 
 void LocateDirectories();
 
@@ -37,6 +29,7 @@ void _DO_TRACE(const char *fmt, ...) {
 	
     va_list args;
     va_start(args, fmt);
+	vprintf(fmt, args);
     vfprintf(_TRACE_FILE, fmt, args);
     va_end(args);
 	fflush(_TRACE_FILE);

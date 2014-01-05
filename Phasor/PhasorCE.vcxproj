@@ -90,6 +90,7 @@
     <ClCompile Include="Hooks\Directory.cpp" />
     <ClCompile Include="Hooks\Gametypes.cpp" />
     <ClCompile Include="Hooks\MapLoader.cpp" />
+    <ClCompile Include="Hooks\tags.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Hooks\Addresses.cpp" />
     <ClCompile Include="Hooks\Hooks.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="Hooks\Directory.h" />
     <ClInclude Include="Hooks\Gametypes.h" />
     <ClInclude Include="Hooks\MapLoader.h" />
+    <ClInclude Include="Hooks\tags.h" />
     <ClInclude Include="Hooks\Version.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Hooks\Addresses.h" />

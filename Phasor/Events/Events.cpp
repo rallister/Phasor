@@ -2,13 +2,55 @@
 #include "../Common/Common.h"
 #include "../Common/Globals.h"
 #include "../Hooks/MapLoader.h"
+#include "../Hooks/tags.h"
 
 #include "Events.h"
+
+void* GetObjectAddress(ident objectId)
+{
+	s_halo_object_table* object_table = *(s_halo_object_table**)ADDR_OBJECTBASE;
+	if (objectId.slot >= object_table->header.max_size) return 0;
+
+	s_halo_object_header* obj = &object_table->entries[objectId.slot];
+	return obj->id == objectId.id ? obj->data : 0;
+}
+
+s_server_info* GetServerStruct()
+{
+	return (s_server_info*)ADDR_SERVERSTRUCT; 
+}
+
+s_player_structure* GetPlayerMemory(int index)
+{
+	if (index >= 0 && index < 16) {
+		s_player_table* table = *(s_player_table**)ADDR_PLAYERBASE;
+		if (table) return &table->players[index];
+	}
+	return 0;
+}	
+
+s_player_structure* getPlayerFromObjectId(ident id)
+{	
+
+	for (int i = 0; i < 16; i++) 
+	{
+		s_player_structure* sp = GetPlayerMemory(i);
+		if(sp->object_id == id)
+		{
+			return sp;
+		}
+	}
+	return NULL;
+}
+
+
 
 // D:\_git\Phasor_RA\Phasor\Phasor\Halo\Server\Server.h
 void __stdcall OnMachineConnect(DWORD machineIndex)
 {
-	_TRACE("\r\n - OnMachineConnect") 
+	s_server_info* ss = GetServerStruct();
+	
+	_TRACE("\r\n - OnMachineConnect %d", ss->cur_players) 
 }
 
 void __stdcall OnMachineDisconnect(DWORD machineIndex)
@@ -23,17 +65,36 @@ void __stdcall OnMachineInfoFix(s_machinfo_info_partial_packet* data)
 
 void __stdcall ConsoleHandler(DWORD fdwCtrlType)
 {
+	// used only when closing server
+	// dunno what it is for.
 	_TRACE("\r\n - ConsoleHandler") 
 }
 
 void __stdcall OnConsoleProcessing()
 {
-	_TRACE("\r\n - OnConsoleProcessing") 
+	// i wonder what else does this thread do, i'd like to kill it.
+	//_TRACE("\r\n - OnConsoleProcessing") 
 }
 
 void __stdcall OnClientUpdate(s_player_structure* m_player)
 {
-	_TRACE("\r\n - OnClientUpdate") 
+	s_halo_biped* object =  (s_halo_biped*)GetObjectAddress(m_player->object_id);
+	if (object)	{
+		
+		vect3d new_camera = object->cameraView;
+		
+		// check if the camera has moved
+		if (new_camera != m_player->oldCamera) // oldCamera added to unknowns 12 bytes.
+		{	_TRACE("\r\n - %f, %f, %f", new_camera.x,new_camera.y, new_camera.z);
+			m_player->oldCamera = new_camera;
+		}
+
+		// Check if the player is shooting/throwing nades etc, if so they are not afk
+		if (object->actionFlags.melee || 
+			object->actionFlags.primaryWeaponFire ||
+			object->actionFlags.secondaryWeaponFire)
+			;//MarkPlayerActive();
+	} 
 }
 
 e_command_result __stdcall ProcessCommand(char* input)
@@ -41,7 +102,7 @@ e_command_result __stdcall ProcessCommand(char* input)
 	_TRACE("\r\n - ProcessCommand") 
 
 	if(stricmp(input, "sv_mapcycle_begin") == 0)
-	{
+	{		
 		//return StartGame(NULL);
 		s_phasor_mapcycle_entry game;
 		game.gametype=L"ctf";
@@ -66,44 +127,51 @@ bool __stdcall OnMapLoad(s_mapcycle_entry* loading_map)
 }
 
 void __stdcall OnHaloPrint(char* msg)
-{
-	_TRACE("\r\n - OnHaloPrint") 
+{	
+	//todo: set up heart beat.
 }
 
 bool __stdcall OnHaloBanCheck(char* hash, s_machine_info* machine)
-{
+{	
 	_TRACE("\r\n - OnHaloBanCheck") 
 	return TRUE;
 }
 
 void __stdcall OnHashValidation(s_hash_validation* info, const char* status)
 {
-	_TRACE("\r\n - OnHashValidation") 
+	info->status = 1;
+	_TRACE("\r\n - OnHashValidation %s ", status) 
 }
 
 void __stdcall  OnNewGame(const char* map)
 {
-	_TRACE("\r\n - OnNewGame") 
+	BuildTagCache();
+	_TRACE("\r\n - OnNewGame %s", map) 
 }
 
 void __stdcall  OnGameEnd(DWORD mode)
 {
-	_TRACE("\r\n - OnGameEnd") 
+	_TRACE("\r\n - OnGameEnd %8x", mode) 
 }
 
 void __stdcall OnPlayerWelcome(DWORD playerId)
 {
-	_TRACE("\r\n - OnPlayerWelcome") 
+	s_server_info* ss = GetServerStruct();
+	
+	_TRACE("\r\n - OnPlayerWelcome %S", ss->player_data[playerId].name) 
 }
 
 void __stdcall OnPlayerQuit(DWORD playerId)
 {
-	_TRACE("\r\n - OnPlayerQuit") 
+	s_server_info* ss = GetServerStruct();
+	_TRACE("\r\n - OnPlayerQuit %S", ss->player_data[playerId].name) 
 }
 
 DWORD __stdcall OnTeamSelection(DWORD cur_team, s_machine_info* machine)
 {
-	_TRACE("\r\n - OnTeamSelection") 
+	s_server_info* ss = GetServerStruct();
+	
+	_TRACE("\r\n - OnTeamSelection %d", cur_team) 
 	return 0;
 }
 
@@ -210,15 +278,31 @@ void __stdcall OnObjectDestroy(ident m_objid)
 
 
 bool __stdcall OnDamageLookup(s_damage_info* dmg, ident* receiver)
-{
-	_TRACE("\r\n - OnDamageLookup") 
-	return TRUE;
+{	
+	
+	s_tag_entry* tag = LookupTag(dmg->tag_id);
+	s_tag_entry* xs = LookupTag(*receiver);
+	
+	_TRACE("\r\n - OnDamageLookup %s -> [%s]",tag->tagName, xs->tagName)
+
+	return true;
 }
 
 
 bool __stdcall OnDamageApplication(const s_damage_info* dmg, ident receiver, s_hit_info* hit, bool backtap)
 {
-	_TRACE("OnDamageApplication")
-	return TRUE;
+	/*s_tag_entry* tag = LookupTag(dmg->tag_id);
+	s_tag_entry* xs = LookupTag(receiver);
+	
+	_TRACE("\r\n - OnDamageApplication %s -> %s [%s]",tag->tagName, hit->desc, xs->tagName)*/
+
+	s_player_structure* player = getPlayerFromObjectId(receiver);
+	if(player)
+	{
+		_TRACE("\r\n - OnDamageApplication %S", player->playerName)
+	}
+
+
+	return true; // setting to false => deathless.
 }
 
