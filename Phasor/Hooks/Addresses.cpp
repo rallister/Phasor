@@ -1,6 +1,9 @@
-#include "../../Common/Common.h"
-#include "../../Common/MyString.h"
-#include "../Globals.h"
+#include "../Common/Common.h"
+#include "../Common/MyString.h"
+#include "../Common/Globals.h"
+
+// get rid of it as well.
+using namespace Common;
 
 // This file is used to store all memory addresses Phasor uses
 // ------------------------------------------------------------------------
@@ -138,9 +141,6 @@ unsigned long CC_MACHINEDISCONNECT = 0x00515bd9;
 unsigned long CC_MACHINEINFOFIX = 0x00516e39;
 unsigned long FUNC_INTERSECT = 0x0053d8d0;
 
-namespace Addresses
-{
-	using namespace Common;
 
 	// ------------------------------------------------------------------------
 	// 
@@ -560,4 +560,3 @@ namespace Addresses
 		for (size_t x = 0; x < locations.size(); x++)
 			WriteBytes((DWORD)codeSection+locations[x], instPatch, sizeof(instPatch));
 	}
-}

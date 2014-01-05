@@ -1,11 +1,8 @@
 #include "Hooks.h"
 #include "Addresses.h"
-#include "../../Common/Common.h"
-#include "Server/Server.h"
-#include "Game/Game.h"
-#include "Server/MapLoader.h"
-#include "Game/Objects.h"
-#include "Game/Damage.h"
+#include "../Common/Common.h"
+#include "../Common/Globals.h"
+#include "../Events/Events.h"
 
 using namespace halo;
 
@@ -22,7 +19,7 @@ __declspec(naked) void OnConsoleProcessing_CC()
 		pop consoleProc_ret
 
 		pushad
-		call server::OnConsoleProcessing
+		call OnConsoleProcessing
 		popad
 
 		PUSH EBX
@@ -44,7 +41,7 @@ __declspec(naked) void ConsoleHandler_CC()
 		pushad
 
 		push esi
-		call server::ConsoleHandler
+		call ConsoleHandler
 
 		popad
 
@@ -70,7 +67,7 @@ __declspec(naked) void OnServerCommandAttempt_CC()
 
 		push ebp // player
 		push eax
-		call server::ProcessCommandAttempt
+		call ProcessCommandAttempt
 
 		popad
 
@@ -101,7 +98,7 @@ __declspec(naked) void OnServerCommand_CC()
 		pushad
 
 		push edi
-		call server::ProcessCommand
+		call ProcessCommand
 
 		cmp al, COMMAND_PROCESSED
 		je PROCESSED
@@ -133,7 +130,7 @@ __declspec(naked) void OnMapLoading_CC()
 
 		lea eax, dword ptr ds:[eax + esi]
 		push eax
-		call server::OnMapLoad
+		call OnMapLoad
 
 		cmp al, 0
 		je RELOAD_MAP_DATA
@@ -180,7 +177,7 @@ __declspec(naked) void OnGameEnd_CC()
 		pushad
 
 		push eax
-		call server::OnGameEnd
+		call OnGameEnd
 
 		popad
 
@@ -210,7 +207,7 @@ __declspec(naked) void OnNewGame_CC()
 		lea eax, dword ptr ds:[esp + 0x24]
 		mov eax, [eax]
 		push eax
-		call server::OnNewGame
+		call OnNewGame
 
 		popad
 
@@ -245,7 +242,7 @@ __declspec(naked) void OnPlayerWelcome_CC()
 		je IGNORE_JOIN
 		and eax, 0xff
 		push eax
-		call game::OnPlayerWelcome
+		call OnPlayerWelcome
 IGNORE_JOIN:
 
 		popad
@@ -267,7 +264,7 @@ __declspec(naked) void OnPlayerQuit_CC()
 
 		and eax, 0xff
 		push eax
-		call game::OnPlayerQuit
+		call OnPlayerQuit
 
 		popad
 
@@ -300,7 +297,7 @@ __declspec(naked) void OnTeamSelection_CC()
 		push edi // ptr ptr ptr to machine struct
 		movsx eax, al
 		push eax
-		call game::OnTeamSelection
+		call OnTeamSelection
 		mov selection, eax
 
 		popad
@@ -330,7 +327,7 @@ __declspec(naked) void OnTeamChange_CC()
 		push edx // player
 #endif
 		
-		call game::OnTeamChange
+		call OnTeamChange
 
 		cmp al, 0
 		je DO_NOT_CHANGE
@@ -378,7 +375,7 @@ __declspec(naked) void OnPlayerSpawn_CC()
 		and ebx, 0xff
 		push esi // memory object id
 		push ebx // player memory id
-		call game::OnPlayerSpawn
+		call OnPlayerSpawn
 
 		popad
 
@@ -408,7 +405,7 @@ __declspec(naked) void OnPlayerSpawnEnd_CC()
 
 		push esi // memory object id
 		push ebx // player memory id
-		call game::OnPlayerSpawnEnd
+		call OnPlayerSpawnEnd
 
 		popad
 		push playerSpawnEnd_ret
@@ -428,7 +425,7 @@ __declspec(naked) void OnObjectCreation_CC()
 		pushad
 
 		push ebx
-		call game::OnObjectCreation
+		call OnObjectCreation
 
 		popad
 
@@ -452,7 +449,7 @@ __declspec(naked) void OnObjectCreationAttempt_CC()
 
 		mov eax, [ESP + 0x24]
 		push eax // creation description
-		call game::OnObjectCreationAttempt
+		call OnObjectCreationAttempt
 
 		cmp al, 1
 		je ALLOW_CREATION
@@ -480,7 +477,7 @@ __declspec(naked) void OnObjectDestroy_CC()
 		pushad
 
 		push eax
-		call objects::OnObjectDestroy
+		call OnObjectDestroy
 
 		popad
 
@@ -513,7 +510,7 @@ __declspec(naked) void OnWeaponAssignment_CC()
 		push eax // curweapon
 		push esi // owner
 		push edi // player
-		call game::OnWeaponAssignment
+		call OnWeaponAssignment
 		mov wepassign_val, eax
 
 		popad
@@ -543,7 +540,7 @@ __declspec(naked) void OnObjectInteraction_CC()
 		and eax, 0xff
 		push edi
 		push eax
-		call game::OnObjectInteraction
+		call OnObjectInteraction
 
 		cmp al, 0
 		je DO_NOT_CONTINUE
@@ -586,7 +583,7 @@ __declspec(naked) void OnChat_CC()
 		#endif
 		
 		push eax
-		call game::OnChat
+		call OnChat
 
 		popad
 
@@ -620,7 +617,7 @@ START_PROCESSING:
 		pushad
 		mov eax, [esp + 0x20]
 		push eax // player's object
-		call server::OnClientUpdate
+		call OnClientUpdate
 
 		popad
 
@@ -732,7 +729,7 @@ __declspec(naked) void OnVehicleEntry_CC()
 		and eax, 0xff
 
 		push eax
-		call game::OnVehicleEntry
+		call OnVehicleEntry
 
 		cmp al, 1
 
@@ -783,7 +780,7 @@ __declspec(naked) void OnDeath_CC()
 		push esi // mode of death
 		push eax // victim
 		push ecx // killer
-		call game::OnPlayerDeath
+		call OnPlayerDeath
 		mov show_kill_msg, al
 		popad
 
@@ -810,7 +807,7 @@ __declspec(naked) void OnKillMultiplier_CC()
 		push esi // muliplier
 		and edi, 0xff
 		push edi // player
-		call game::OnKillMultiplier
+		call OnKillMultiplier
 
 		popad
 
@@ -833,7 +830,7 @@ __declspec(naked) void OnWeaponReload_CC()
 
 		mov ecx, [esp + 0x40]
 		push ecx
-		call game::OnWeaponReload
+		call OnWeaponReload
 
 		cmp al, 1
 		je ALLOW_RELOAD
@@ -870,7 +867,7 @@ __declspec(naked) void OnVehicleRespawn_CC()
 		pushad
 		push ebx // object's memory address
 		push esi // object's id
-		call objects::VehicleRespawnCheck // returns true if we should respawn, false if not
+		call VehicleRespawnCheck // returns true if we should respawn, false if not
 		cmp al, 2
 		je OBJECT_DESTROYED
 		cmp al, 1 // return to a JL statement, jump if not respawn
@@ -903,7 +900,7 @@ __declspec(naked) void OnEquipmentDestroy_CC()
 		push ebp // equipment's memory address
 		push ebx // equipment's memory id
 		push esi // tick count of when the item is due for destruction
-		call objects::EquipmentDestroyCheck // returns true if should destroy
+		call EquipmentDestroyCheck // returns true if should destroy
 		xor al, 1 // 1 -> 0, 0 -> 1
 		cmp al, 1 // returns to a JGE so if al < 1 item is destroyed
 		popad
@@ -923,7 +920,7 @@ __declspec(naked) void OnVehicleForceEject_CC()
 		pushad
 		push 1 // force eject
 		push ebx 
-		call game::OnVehicleEject // false - don't eject
+		call OnVehicleEject // false - don't eject
 
 		cmp al, 1
 		je DO_FORCE_EJECT
@@ -958,7 +955,7 @@ __declspec(naked) void OnVehicleUserEject_CC()
 		pushad
 		push 0
 		push ebx // not a forceable ejection
-		call game::OnVehicleEject // false - don't eject
+		call OnVehicleEject // false - don't eject
 
 		cmp al, 1
 		je DO_USER_EJECT
@@ -987,7 +984,7 @@ __declspec(naked) void OnHaloPrint_CC()
 
 		pushad
 		push eax
-		call server::OnHaloPrint
+		call OnHaloPrint
 		popad
 		
 		ret
@@ -1005,7 +1002,7 @@ __declspec(naked) void OnHaloBanCheck_CC()
 		mov eax, [esp + 0x28]
 		push eax
 		push edi
-		call server::OnHaloBanCheck
+		call OnHaloBanCheck
 		cmp al, 1 // not banned
 		JE PLAYER_NOT_BANNED
 		popad
@@ -1035,7 +1032,7 @@ __declspec(naked) void OnHaloHashCheck_CC()
 
 			push eax // errmsg
 			push esi // request struct
-			call server::OnHashValidation
+			call OnHashValidation
 
 			popad
 
@@ -1061,7 +1058,7 @@ __declspec(naked) void OnHaloHashCheckValid_CC()
 
 		push eax // errmsg
 		push esi // request struct
-		call server::OnHashValidation
+		call OnHashValidation
 		
 		popad
 
@@ -1080,7 +1077,7 @@ __declspec(naked) void OnMachineConnect_CC()
 		pushad
 
 		push ebx // index in machine table
-		call server::OnMachineConnect
+		call OnMachineConnect
 
 		popad
 
@@ -1105,7 +1102,7 @@ __declspec(naked) void OnMachineDisconnect_CC()
 #elif PHASOR_CE
 		push eax // machine index in table
 #endif
-		call server::OnMachineDisconnect
+		call OnMachineDisconnect
 		
 		popad
 
@@ -1139,7 +1136,7 @@ __declspec(naked) void OnMachineInfoFix_CC()
 		pushad
 
 		push eax
-		call server::OnMachineInfoFix
+		call OnMachineInfoFix
 
 		popad
 

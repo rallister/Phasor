@@ -18,31 +18,7 @@ namespace halo { namespace server
 	SayStream say_stream;
 	SayStreamRaw say_stream_raw;
 
-	#pragma pack(push, 1)
-	struct s_hash_data
-	{
-		DWORD id;
-		char hash[0x20];
-		BYTE unk[0x2c];
-	};
-	static_assert(sizeof(s_hash_data) == 0x50, "incorrect s_hash_data");
-
-	struct s_hash_list
-	{
-		s_hash_data* data; // 0 for head of list
-		s_hash_list* next;
-		s_hash_list* prev; 
-	};
-	static_assert(sizeof(s_hash_list) == 0x0C, "incorrect s_hash_list");
-
-	struct s_command_cache
-	{
-		char commands[8][0xFF];
-		WORD unk;
-		WORD count;
-		WORD cur;
-	};
-	#pragma pack(pop)
+	
 
 	std::unique_ptr<PhasorMachine> machine_list[16];
 	std::string current_map;
@@ -433,22 +409,7 @@ namespace halo { namespace server
 	{
 		if (str.size() >= 0x50) return false;
 
-#pragma pack(push, 1)
-		struct s_console_msg
-		{
-			char* msg_ptr;
-			DWORD unk; // always 0
-			char msg[0x50];
 
-			s_console_msg(const char* text)
-			{
-				memset(msg, 0, 0x50);
-				strcpy_s(msg, 0x50, text);
-				unk = 0;
-				msg_ptr = msg;
-			}
-		};
-#pragma pack(pop)
 
 		std::string str_narrow = NarrowString(str);
 		s_console_msg d(str_narrow.c_str());
@@ -591,4 +552,4 @@ namespace halo { namespace server
 		std::wstring msg = MSG_PREFIX + StripTrailingEndl(str);
 		return SayStreamRaw::Write(msg);
 	}
-}}
+}

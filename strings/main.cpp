@@ -18,15 +18,11 @@ void __stdcall OnLoad()
 	// PUSH 0x18 is halo server
 	// PUSH 0x60 is halo client
 	if (*(WORD*)lpEntryPoint == 0x186A)
-	{
-		// Load Phasor.dll
+	{		
 		HMODULE hModule = LoadLibrary("PhasorCE.dll");
-		//HMODULE hModule = LoadLibrary("D:\\Development\\C++\\Phasor\\Debug\\PhasorCE.dll");
-
-		// Check if Phasor loaded successfully
+		
 		if (hModule)
-		{
-			// Call Phasors OnLoad event
+		{			
 			typedef void (__cdecl *PhasorOnLoad)();
 			PhasorOnLoad OnLoad = (PhasorOnLoad)GetProcAddress(hModule, "OnLoad");
 			OnLoad();

@@ -3,7 +3,7 @@
 #include "../Common/Types.h"
 #include "../Common/MyString.h"
 #include "Directory.h"
-#include "Halo/Addresses.h"
+#include "Addresses.h"
 #include "Version.h"
 #include <windows.h>
 #include <stdio.h>

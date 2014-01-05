@@ -76,32 +76,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libcurl\libcurl.vcxproj">
-      <Project>{8d3373e1-3000-46dd-a043-e5b0fa5919c0}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\lua\lua.vcxproj">
-      <Project>{d55af885-7878-4c5b-a0d1-b69e062fff40}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\sqlite\sqlite.vcxproj">
-      <Project>{dfb5f9f9-3363-4345-a5a5-922e9ab45548}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="CallHelper.cpp" />
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\FileIO.cpp" />
@@ -109,24 +83,7 @@
     <ClCompile Include="Common\Streams.cpp" />
     <ClCompile Include="Common\Threads.cpp" />
     <ClCompile Include="Common\Timers.cpp" />
-    <ClCompile Include="Libraries\Curl.cpp" />
-    <ClCompile Include="Libraries\sqlitepp.cpp" />
-    <ClCompile Include="Lua.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Manager.cpp" />
-    <ClCompile Include="PhasorAPI\alias_script.cpp" />
-    <ClCompile Include="PhasorAPI\api_readers.cpp" />
-    <ClCompile Include="PhasorAPI\damagelookup.cpp" />
-    <ClCompile Include="PhasorAPI\memory.cpp" />
-    <ClCompile Include="PhasorAPI\misc.cpp" />
-    <ClCompile Include="PhasorAPI\misc_halo.cpp" />
-    <ClCompile Include="PhasorAPI\haloobjects.cpp" />
-    <ClCompile Include="PhasorAPI\output.cpp" />
-    <ClCompile Include="PhasorAPI\PhasorAPI.cpp" />
-    <ClCompile Include="PhasorAPI\playerinfo.cpp" />
-    <ClCompile Include="PhasorAPI\scriptmanagement.cpp" />
-    <ClCompile Include="PhasorAPI\scripttimers.cpp" />
-    <ClCompile Include="PhasorAPI\string.cpp" />
     <ClCompile Include="Phasor\Admin.cpp" />
     <ClCompile Include="Phasor\Commands.cpp" />
     <ClCompile Include="Phasor\CrashHandler.cpp" />
@@ -170,24 +127,7 @@
     <ClInclude Include="Common\Timers.h" />
     <ClInclude Include="Common\Types.h" />
     <ClInclude Include="Common\vect3d.h" />
-    <ClInclude Include="Libraries\Curl.h" />
-    <ClInclude Include="Libraries\sqlitepp.h" />
-    <ClInclude Include="Lua.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="Manager.h" />
-    <ClInclude Include="PhasorAPI\alias_script.h" />
-    <ClInclude Include="PhasorAPI\api_readers.h" />
-    <ClInclude Include="PhasorAPI\damagelookup.h" />
-    <ClInclude Include="PhasorAPI\memory.h" />
-    <ClInclude Include="PhasorAPI\misc.h" />
-    <ClInclude Include="PhasorAPI\misc_halo.h" />
-    <ClInclude Include="PhasorAPI\haloobjects.h" />
-    <ClInclude Include="PhasorAPI\output.h" />
-    <ClInclude Include="PhasorAPI\PhasorAPI.h" />
-    <ClInclude Include="PhasorAPI\playerinfo.h" />
-    <ClInclude Include="PhasorAPI\scriptmanagement.h" />
-    <ClInclude Include="PhasorAPI\scripttimers.h" />
-    <ClInclude Include="PhasorAPI\string.h" />
     <ClInclude Include="Phasor\Admin.h" />
     <ClInclude Include="Phasor\Commands.h" />
     <ClInclude Include="Phasor\CrashHandler.h" />

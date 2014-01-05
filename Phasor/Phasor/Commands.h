@@ -11,11 +11,7 @@
 
 // stupid enum warning
 #pragma warning( disable : 4482)
-enum e_command_result
-{
-	kGiveToHalo = 0,
-	kProcessed
-};
+
 
 namespace commands 
 {

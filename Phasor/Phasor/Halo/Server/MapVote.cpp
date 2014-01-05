@@ -49,7 +49,7 @@ namespace halo { namespace server { namespace mapvote {
 		return vote > 0 && vote <= (int)current_vote_options.size();
 	}
 
-	PlayerVoteHandler* GetPlayerVoteHandler(const halo::s_player& player)
+	PlayerVoteHandler* GetPlayerVoteHandler(const s_player& player)
 	{
 		for (auto itr = player_votes.begin(); itr != player_votes.end(); ++itr)
 			if (itr->player == &player) return &*itr;
@@ -57,7 +57,7 @@ namespace halo { namespace server { namespace mapvote {
 		return NULL;
 	}
 
-	bool GetVoteDecision(maploader::s_phasor_mapcycle_entry& out)
+	bool GetVoteDecision(s_phasor_mapcycle_entry& out)
 	{
 		if (!mapvote_in_progress) return false;
 
@@ -86,7 +86,7 @@ namespace halo { namespace server { namespace mapvote {
 		return true;
 	}
 
-	bool OnServerChat(const halo::s_player& player, const std::wstring& msg)
+	bool OnServerChat(const s_player& player, const std::wstring& msg)
 	{
 		if (!mapvote_in_progress) return true; 
 

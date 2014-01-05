@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Lua.cpp">
-      <Filter>Scripting\Lua</Filter>
-    </ClCompile>
     <ClCompile Include="Scripting.cpp">
       <Filter>Scripting</Filter>
     </ClCompile>
@@ -25,15 +22,6 @@
     </ClCompile>
     <ClCompile Include="Common\Timers.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager.cpp">
-      <Filter>Scripting\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Libraries\sqlitepp.cpp">
-      <Filter>Libraries\SQLite</Filter>
-    </ClCompile>
-    <ClCompile Include="Libraries\Curl.cpp">
-      <Filter>Libraries\cURL</Filter>
     </ClCompile>
     <ClCompile Include="Phasor\PhasorThread.cpp">
       <Filter>Phasor</Filter>
@@ -101,44 +89,14 @@
     <ClCompile Include="Phasor\Halo\HaloStreams.cpp">
       <Filter>Phasor\Halo</Filter>
     </ClCompile>
-    <ClCompile Include="PhasorAPI\PhasorAPI.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\memory.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\output.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
     <ClCompile Include="Phasor\Halo\Server\Packet.cpp">
       <Filter>Phasor\Halo\Server</Filter>
     </ClCompile>
     <ClCompile Include="Phasor\Halo\Server\Chat.cpp">
       <Filter>Phasor\Halo\Server</Filter>
     </ClCompile>
-    <ClCompile Include="PhasorAPI\api_readers.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\playerinfo.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\string.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\misc.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\misc_halo.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
     <ClCompile Include="ScriptingEvents.cpp">
       <Filter>Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\haloobjects.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\alias_script.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
     </ClCompile>
     <ClCompile Include="Phasor\Halo\tags.cpp">
       <Filter>Phasor\Halo</Filter>
@@ -146,14 +104,8 @@
     <ClCompile Include="Phasor\Halo\Server\MapVote.cpp">
       <Filter>Phasor\Halo\Server</Filter>
     </ClCompile>
-    <ClCompile Include="PhasorAPI\scripttimers.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
     <ClCompile Include="CallHelper.cpp">
       <Filter>Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="PhasorAPI\damagelookup.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
     </ClCompile>
     <ClCompile Include="Phasor\Halo\Game\Damage.cpp">
       <Filter>Phasor\Halo\Game</Filter>
@@ -161,34 +113,16 @@
     <ClCompile Include="Phasor\Halo\Server\misc_cmds.cpp">
       <Filter>Phasor\Halo\Server</Filter>
     </ClCompile>
-    <ClCompile Include="PhasorAPI\scriptmanagement.cpp">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scripting">
       <UniqueIdentifier>{7079a9e2-e462-46a5-8823-5b8a37a83223}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scripting\Lua">
-      <UniqueIdentifier>{c84675ec-0b57-47b5-941d-c121e818861f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Common">
       <UniqueIdentifier>{9f3ef030-3b45-4918-b148-807ef010790b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scripting\Manager">
-      <UniqueIdentifier>{e75bf6ba-31fe-4005-be76-52be7291a71b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scripting\PhasorAPI">
-      <UniqueIdentifier>{2ecdf623-1246-4bc4-beaf-6b7470b864cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Libraries">
       <UniqueIdentifier>{84ce3342-9772-488a-82b1-75bb013069a9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\SQLite">
-      <UniqueIdentifier>{b79b28ae-4eac-429f-9faf-9704db66da51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\cURL">
-      <UniqueIdentifier>{bda8da5b-c6fc-4c0c-8db4-b8f13e524c81}</UniqueIdentifier>
     </Filter>
     <Filter Include="Phasor">
       <UniqueIdentifier>{6de8fee8-ff2e-4593-b343-5581cfec9017}</UniqueIdentifier>
@@ -213,9 +147,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Lua.h">
-      <Filter>Scripting\Lua</Filter>
-    </ClInclude>
     <ClInclude Include="Scripting.h">
       <Filter>Scripting</Filter>
     </ClInclude>
@@ -242,15 +173,6 @@
     </ClInclude>
     <ClInclude Include="Common\Types.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager.h">
-      <Filter>Scripting\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\sqlitepp.h">
-      <Filter>Libraries\SQLite</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\Curl.h">
-      <Filter>Libraries\cURL</Filter>
     </ClInclude>
     <ClInclude Include="Phasor\PhasorThread.h">
       <Filter>Phasor</Filter>
@@ -336,66 +258,27 @@
     <ClInclude Include="Phasor\Halo\HaloStreams.h">
       <Filter>Phasor\Halo</Filter>
     </ClInclude>
-    <ClInclude Include="PhasorAPI\PhasorAPI.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\memory.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\output.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
     <ClInclude Include="Phasor\Halo\Server\Packet.h">
       <Filter>Phasor\Halo\Server</Filter>
     </ClInclude>
     <ClInclude Include="Phasor\Halo\Server\Chat.h">
       <Filter>Phasor\Halo\Server</Filter>
     </ClInclude>
-    <ClInclude Include="PhasorAPI\playerinfo.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\api_readers.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\string.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\misc.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\misc_halo.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
     <ClInclude Include="ScriptingEvents.h">
       <Filter>Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\haloobjects.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\alias_script.h">
-      <Filter>Scripting\PhasorAPI</Filter>
     </ClInclude>
     <ClInclude Include="Phasor\Halo\tags.h">
       <Filter>Phasor\Halo</Filter>
     </ClInclude>
     <ClInclude Include="main.h" />
-    <ClInclude Include="PhasorAPI\scripttimers.h">
-      <Filter>Scripting\PhasorAPI</Filter>
-    </ClInclude>
     <ClInclude Include="CallHelper.h">
       <Filter>Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\damagelookup.h">
-      <Filter>Scripting\PhasorAPI</Filter>
     </ClInclude>
     <ClInclude Include="Phasor\Halo\Game\Damage.h">
       <Filter>Phasor\Halo\Game</Filter>
     </ClInclude>
     <ClInclude Include="Phasor\Halo\Server\misc_cmds.h">
       <Filter>Phasor\Halo\Server</Filter>
-    </ClInclude>
-    <ClInclude Include="PhasorAPI\scriptmanagement.h">
-      <Filter>Scripting\PhasorAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

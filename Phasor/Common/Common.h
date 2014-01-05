@@ -8,6 +8,25 @@
 #include <deque>
 #include <memory>
 
+#ifdef PHASOR_PC
+	#define CONST_MENTRY_SIZE				0x0A4 // size of each entry in map cycle
+	#define GAMET_BUFFER_SIZE				0x098	
+#elif PHASOR_CE
+	#define CONST_MENTRY_SIZE				0x0E4
+	#define GAMET_BUFFER_SIZE				0x0D8	
+#endif
+static_assert(GAMET_BUFFER_SIZE + 0x0C == CONST_MENTRY_SIZE, "incorrect mapcycle sizes");
+
+// Offsets
+#define OFFSET_CONSOLETEXT					0x0B4
+#define OFFSET_RESPAWNTICKS					0x068
+#ifdef PHASOR_PC
+	#define MACHINE_ENTRY_SIZE				0x060
+#elif PHASOR_CE
+	#define MACHINE_ENTRY_SIZE				0x0EC
+#endif
+
+
 namespace Common
 {
 	// Type of data stored by an Object

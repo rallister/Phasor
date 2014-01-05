@@ -1,12 +1,12 @@
 #include "MapLoader.h"
-#include "ScriptLoader.h"
-#include "../../Directory.h"
-#include "../../../Common/MyString.h"
-#include "../../../Common/FileIO.h"
-#include "../Addresses.h"
-#include "../../Globals.h"
+
+#include "Directory.h"
+#include "../Common/MyString.h"
+#include "../Common/FileIO.h"
+#include "Addresses.h"
+#include "../Common/Globals.h"
 #include "Gametypes.h"
-#include "Server.h"
+
 #include <map>
 
 /* The reasoning behind this whole system is actually quite complex. The basic
@@ -41,39 +41,7 @@
  * and re-reverse it. Unfortunately I didn't comment it very well when I made
  * it so I decided to add the information above to help you make sense of it.
 */
-namespace halo { namespace server { namespace maploader
-{
-	// ----------------------------------------------------------------
-	// Structures used for map processing
-	// ----------------------------------------------------------------
-	#pragma pack(push, 1)
 
-	// Structure of map header
-	struct hMapHeader
-	{
-		DWORD integrity; // should be 'head' if not corrupt
-		DWORD type; // 7 for halo PC, ce is 0x261
-		DWORD filesize;
-		DWORD highSize;
-		DWORD offset1;
-		BYTE unk1[12]; // Unknown atm
-		char name[32]; // map name
-		char version[32]; // version the map was built at
-		DWORD mapType; // 0 campaign, 1 multiplayer, 2 data (ui.map)
-		BYTE unk2[0x798]; // first few bytes have data, rest are 00
-		DWORD integrity2; // should be 'foot' if not corrupt
-	};
-
-	struct mapTableInfo
-	{
-		char* map;
-		DWORD index;
-		DWORD empty;
-	};
-
-	#pragma pack(pop)
-
-	static const size_t kMaxMapLength = 0x20;
 
 #ifdef PHASOR_PC
 	// ----------------------------------------------------------------
@@ -205,7 +173,7 @@ namespace halo { namespace server { namespace maploader
 						// Default map, let halo add it.
 						if (base_map == map_name)
 							continue;
-						*g_PrintStream << "Adding map " << map_name << endl;
+					
 						// Add the data into the map table
 						size_t alloc_size = map_name.size() + 1;
 						char* map_alloc = (char*)GlobalAlloc(GMEM_FIXED, alloc_size);
@@ -406,7 +374,7 @@ MAP_NOT_FOUND:
 			s_mapcycle_entry& entry)
 		{
 			// Get the gametype data
-			if (!gametypes::ReadGametypeData(gametype, entry.gametype_data, sizeof(entry.gametype_data)))
+			if (!ReadGametypeData(gametype, entry.gametype_data, sizeof(entry.gametype_data)))
 			{ 
 
 				_TRACE_DEBUG_CANT_READ_GAMETYPE(gametype)
@@ -455,7 +423,7 @@ MAP_NOT_FOUND:
 		}
 
 		// load the specified game into this cycle, expanding if necessary.
-		bool AddGame(const s_phasor_mapcycle_entry& game, COutStream& out)
+		bool AddGame(const s_phasor_mapcycle_entry& game)
 		{
 			if (cur_count >= allocated_count) {
 				if (!Expand(3)) return false;
@@ -476,12 +444,12 @@ MAP_NOT_FOUND:
 		}
 
 		// Add a list of games to the mapcycle
-		bool AddGames(std::vector<s_phasor_mapcycle_entry>& games, COutStream& out)
+		bool AddGames(std::vector<s_phasor_mapcycle_entry>& games)
 		{
 			size_t old_size = cur_count;
 			if (!Reserve(games.size())) return false;
 			for (size_t x = 0; x < games.size(); x++) {
-				if (!AddGame(games[x], out)) 
+				if (!AddGame(games[x])) 
 				{ 
 					Free(start + old_size, x);
 					cur_count = old_size;
@@ -580,37 +548,37 @@ MAP_NOT_FOUND:
 		return index >= 0 && index < g_mapcycle_header->cur_count
 			? g_mapcycle_header->games + index : NULL;
 	}
-	
-	// Checks if the map, gametype and all scripts are valid.
-	bool ValidateUserInput(const s_phasor_mapcycle_entry& entry, COutStream& out)
-	{
-		if (!IsValidMap(entry.map))	{
-			out << entry.map << L" isn't a valid map." << endl;
-			return false;
-		}
+	//
+	//
+	//// Checks if the map, gametype and all scripts are valid.
+	//bool ValidateUserInput(const s_phasor_mapcycle_entry& entry, COutStream& out)
+	//{
+	//	if (!IsValidMap(entry.map))	{
+	//		out << entry.map << L" isn't a valid map." << endl;
+	//		return false;
+	//	}
 
-		if (!gametypes::IsValidGametype(entry.gametype)) {
-			out << entry.gametype << L" isn't a valid gametype." << endl;
-			return false;
-		}
+	//	if (!gametypes::IsValidGametype(entry.gametype)) {
+	//		out << entry.gametype << L" isn't a valid gametype." << endl;
+	//		return false;
+	//	}
 
-		bool success = true;
-		for (size_t x = 0; x < entry.scripts.size(); x++) {
-			if (!scriptloader::IsValidScript(entry.scripts[x])) {
-				out << entry.scripts[x] << L" isn't a valid script." << endl;
-				success = false;
-			}
-		}
-		return success;
-	}
+	//	bool success = true;
+	//	for (size_t x = 0; x < entry.scripts.size(); x++) {
+	//		if (!scriptloader::IsValidScript(entry.scripts[x])) {
+	//			out << entry.scripts[x] << L" isn't a valid script." << endl;
+	//			success = false;
+	//		}
+	//	}
+	//	return success;
+	//}
 
 	// Effectively executes sv_map to run a new game
-	bool LoadGame(const s_phasor_mapcycle_entry& game, COutStream& out)
+	bool LoadGame(const s_phasor_mapcycle_entry& game)
 	{
 		std::unique_ptr<CHaloMapcycle> new_cycle = std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
 		
-		if (!new_cycle->AddGame(game, out)) {
-			out << L"Previous errors prevent the game from being started." << endl;
+		if (!new_cycle->AddGame(game)) {			
 			return false;
 		}		
 
@@ -634,33 +602,33 @@ MAP_NOT_FOUND:
 		return true;
 	}
 
-	bool ReadGameDataFromUser(s_phasor_mapcycle_entry& entry,
-		commands::CArgParser& args, COutStream& out)
-	{
-		entry.map = args.ReadString();
-		entry.gametype = args.ReadWideString();
-		for (size_t x = 2; x < args.size(); x++)
-			entry.scripts.push_back(args.ReadString());
-		return ValidateUserInput(entry, out);
-	}
+	//bool ReadGameDataFromUser(s_phasor_mapcycle_entry& entry,	commands::CArgParser& args, COutStream& out)
+	//{
+	//	entry.map = args.ReadString();
+	//	entry.gametype = args.ReadWideString();
+	//	for (size_t x = 2; x < args.size(); x++)
+	//		entry.scripts.push_back(args.ReadString());
+	//	return ValidateUserInput(entry, out);
+	//}
 
-	e_command_result sv_mapcycle_begin(void*, 
-		commands::CArgParser& args, COutStream& out)
+	//e_command_result sv_mapcycle_begin(void*, commands::CArgParser& args)
+	e_command_result sv_mapcycle_begin(void*)
 	{
-		// Check if there is any cycle data
+	//	// Check if there is any cycle data
 		if (!mapcycleList.size()) {
-			out << L"The mapcycle is empty." << endl;
+			//out << L"The mapcycle is empty." << endl;
 			return e_command_result::kProcessed;
 		}
+
 		std::unique_ptr<CHaloMapcycle> new_cycle = 
 			std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
 		if (!new_cycle) {
-			out << L"Cannot allocate memory for new mapcycle." << endl;
+			//out << L"Cannot allocate memory for new mapcycle." << endl;
 			return e_command_result::kProcessed;
 		}
 
-		if (!new_cycle->AddGames(mapcycleList, out)) {
-			out << L"Previous errors prevent the mapcycle from being started." << endl;
+		if (!new_cycle->AddGames(mapcycleList)) {
+			//out << L"Previous errors prevent the mapcycle from being started." << endl;
 			return e_command_result::kProcessed;
 		}
 
@@ -670,96 +638,95 @@ MAP_NOT_FOUND:
 		return e_command_result::kProcessed;
 	}
 
-	e_command_result sv_mapcycle_add(void*, 
-		commands::CArgParser& args, COutStream& out)
-	{
-		s_phasor_mapcycle_entry entry;
-		if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
+	// e_command_result sv_mapcycle_add(void*, 
+    //	commands::CArgParser& args, COutStream& out)
+	//{
+	//	s_phasor_mapcycle_entry entry;
+	//	if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
 
-		// If we're in the mapcycle add the data to the current playlist
-		if (in_mapcycle) 
-		{
-			if (!cycle_loader->GetActive().AddGame(entry, out)) 
-			{
-				out << L"Cannot write addition to current cycle. Addition ignored."
-					<< endl;
+	//	// If we're in the mapcycle add the data to the current playlist
+	//	if (in_mapcycle) 
+	//	{
+	//		if (!cycle_loader->GetActive().AddGame(entry, out)) 
+	//		{
+	//			out << L"Cannot write addition to current cycle. Addition ignored."
+	//				<< endl;
 
-				return e_command_result::kProcessed;
-			}
-		}
+	//			return e_command_result::kProcessed;
+	//		}
+	//	}
 
-		mapcycleList.push_back(entry);
+	//	mapcycleList.push_back(entry);
 
-		out << entry.map << " (game: '" << entry.gametype << "') has been added to the mapcycle." << endl;				
+	//	out << entry.map << " (game: '" << entry.gametype << "') has been added to the mapcycle." << endl;				
 
-		return e_command_result::kProcessed;
-	}
+	//	return e_command_result::kProcessed;
+	//}
 
-	e_command_result sv_mapcycle_del(void* exec_player, 
-		commands::CArgParser& args, COutStream& out)
-	{
-		unsigned int index = args.ReadUInt();
-		if (index < 0 || index >= mapcycleList.size()) {
-			out << L"You entered an invalid index, see sv_mapcycle." << endl;
-			return e_command_result::kProcessed;
-		}
+	//e_command_result sv_mapcycle_del(void* exec_player, 
+	//	commands::CArgParser& args, COutStream& out)
+	//{
+	//	unsigned int index = args.ReadUInt();
+	//	if (index < 0 || index >= mapcycleList.size()) {
+	//		out << L"You entered an invalid index, see sv_mapcycle." << endl;
+	//		return e_command_result::kProcessed;
+	//	}
 
-		mapcycleList.erase(mapcycleList.begin() + index);
-		if (in_mapcycle)
-			cycle_loader->GetActive().DeleteGame(index);
+	//	mapcycleList.erase(mapcycleList.begin() + index);
+	//	if (in_mapcycle)
+	//		cycle_loader->GetActive().DeleteGame(index);
 
-		// Display cycle as it is now
-		return sv_mapcycle(exec_player, args, out);
-	}
+	//	// Display cycle as it is now
+	//	return sv_mapcycle(exec_player, args, out);
+	//}
 
-	e_command_result sv_mapcycle(void*, 
-		commands::CArgParser& args, COutStream& out)
-	{
-		out.wprint(L"   %-20s%-20s%s", L"Map", L"Variant", L"Script(s)");
-		const wchar_t* fmt = L"%-3i%-20s%-20s%s";
+	//e_command_result sv_mapcycle(void*, 
+	//	commands::CArgParser& args, COutStream& out)
+	//{
+	//	out.wprint(L"   %-20s%-20s%s", L"Map", L"Variant", L"Script(s)");
+	//	const wchar_t* fmt = L"%-3i%-20s%-20s%s";
 
-		for (size_t x = 0; x < mapcycleList.size(); x++)
-		{
-			s_phasor_mapcycle_entry& entry = mapcycleList[x];
-			std::string scripts_desc;
-			for (size_t i = 0; i < entry.scripts.size(); i++) {
-				if (i != 0) scripts_desc += ",";
-				scripts_desc += entry.scripts[i].c_str();
-			}			
-			std::wstring scripts_desc_w = WidenString(scripts_desc);
-			if (!scripts_desc_w.size()) scripts_desc_w = L"<no scripts>";
-			std::wstring map_w = WidenString(entry.map);
-			out.wprint(fmt, x, map_w.c_str(), entry.gametype.c_str(), 
-				scripts_desc_w.c_str());
-		}
+	//	for (size_t x = 0; x < mapcycleList.size(); x++)
+	//	{
+	//		s_phasor_mapcycle_entry& entry = mapcycleList[x];
+	//		std::string scripts_desc;
+	//		for (size_t i = 0; i < entry.scripts.size(); i++) {
+	//			if (i != 0) scripts_desc += ",";
+	//			scripts_desc += entry.scripts[i].c_str();
+	//		}			
+	//		std::wstring scripts_desc_w = WidenString(scripts_desc);
+	//		if (!scripts_desc_w.size()) scripts_desc_w = L"<no scripts>";
+	//		std::wstring map_w = WidenString(entry.map);
+	//		out.wprint(fmt, x, map_w.c_str(), entry.gametype.c_str(), 
+	//			scripts_desc_w.c_str());
+	//	}
 
-		return e_command_result::kProcessed;
-	}
+	//	return e_command_result::kProcessed;
+	//}
 
-	e_command_result sv_map(void*, 
-		commands::CArgParser& args, COutStream& out)
-	{
-		s_phasor_mapcycle_entry entry;
-		if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
-	
-		LoadGame(entry, out);
-		return e_command_result::kProcessed;
-	}
+	//e_command_result sv_map(void*, 
+	//	commands::CArgParser& args, COutStream& out)
+	//{
+	//	s_phasor_mapcycle_entry entry;
+	//	if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
+	//
+	//	LoadGame(entry, out);
+	//	return e_command_result::kProcessed;
+	//}
 
-	e_command_result sv_end_game(void*, commands::CArgParser&, COutStream&)
-	{
-		in_mapcycle = false;
-		return e_command_result::kGiveToHalo;
-	}
+	//e_command_result sv_end_game(void*, commands::CArgParser&, COutStream&)
+	//{
+	//	in_mapcycle = false;
+	//	return e_command_result::kGiveToHalo;
+	//}
 
 	// --------------------------------------------------------------------
 	// Initialize the system
-	void Initialize(COutStream& out)
+	void Initialize()
 	{
 #ifdef PHASOR_PC
-		BuildMapList(out);
+		BuildMapList();
 #endif
 		InitializeMapcycle();
 
 	}
-}}}

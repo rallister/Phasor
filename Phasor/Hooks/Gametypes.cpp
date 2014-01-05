@@ -1,11 +1,11 @@
 #include "Gametypes.h"
-#include "../../Directory.h"
-#include "../../../Common/FileIO.h"
-#include "../../../Common/MyString.h"
-#include "../Addresses.h"
-#include "..\..\Globals.h"
-#include <map>
+#include "Directory.h"
+#include "../Common/FileIO.h"
+#include "../Common/MyString.h"
+#include "Addresses.h"
+#include "../Common/Globals.h"
 
+#include <map>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace halo { namespace server { namespace gametypes {
+
 	std::map<std::wstring, BYTE*> gametypes;
 
 	void ClearGameList();
@@ -28,8 +28,8 @@ namespace halo { namespace server { namespace gametypes {
 
 	bool BuildGametypeList2()
 	{
-		bool xx1 =  server::gametypes::ListFiles(g_ProfileDirectory + L"saved", L"blam.lst");
-		bool xx2 = server::gametypes::ListFiles(g_ProfileDirectory + L"savegames", L"blam.lst");
+		bool xx1 =  ListFiles(g_ProfileDirectory + L"saved", L"blam.lst");
+		bool xx2 = ListFiles(g_ProfileDirectory + L"savegames", L"blam.lst");
 		return xx1||xx2;
 	}
 
@@ -150,4 +150,3 @@ namespace halo { namespace server { namespace gametypes {
 		return gametypes.find(normalizeGametype(gametype)) != gametypes.end();
 	}
 
-}}}

@@ -26,28 +26,7 @@ namespace halo { namespace objects {
 			creationTicks = server::GetServerTicks();
 		}
 	};
-	// entry in the object table
-	struct s_halo_object_header
-	{
-		WORD id;
-		char flags; // 0x44 by default, dunno what they're for.
-		char type;
-		UNKNOWN(2);
-		WORD size;
-		union
-		{
-			void*					data;
-			s_halo_object*	base;
-			s_halo_biped*			biped;
-		};
-	};
-	static_assert(sizeof(s_halo_object_header) == 0x0c, "s_halo_object_entry incorrect");
-
-	struct s_halo_object_table
-	{
-		s_table_header header;
-		s_halo_object_header entries[0x800];
-	};	
+	
 
 	std::map<ident, s_phasor_managed_obj> managedList;
 

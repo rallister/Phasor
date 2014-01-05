@@ -35,7 +35,7 @@ namespace halo {
 		return scripting::events::OnDamageApplication(dmg, receiver, hit, backtap);
 	}
 
-	void ApplyDamage(halo::ident receiver, halo::ident causer, 
+	void ApplyDamage(ident receiver, ident causer, 
 		const s_tag_entry& dmg_tag, float mult, int flags)
 	{
 		//if (!receiver.valid() || objects::GetObjectAddress(receiver) == NULL || (causer.valid() && objects::GetObjectAddress(causer) == NULL))
@@ -100,12 +100,12 @@ namespace halo {
 	};
 
 	// Temporarily modifies globals\vehicle_hit_environment and uses it to apply damage.
-	bool ApplyDamage(halo::ident receiver, halo::ident causer, float dmg, int flags)
+	bool ApplyDamage(ident receiver, ident causer, float dmg, int flags)
 	{
 		s_tag_entry* dmg_tag = LookupTag(s_tag_type("jpt!"), "globals\\vehicle_hit_environment");
 		if (!dmg_tag) {
 			
-			server::s_server_info* info = server::GetServerStruct();
+			s_server_info* info = server::GetServerStruct();
 		
 		    _TRACE_DEBUG_APPLYING_VEHICLE_DAMAGE_NO_VEHICLE_HIT(info->map_name)
 			return false;
