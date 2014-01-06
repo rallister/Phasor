@@ -178,15 +178,30 @@ bool __stdcall OnObjectInteraction(DWORD playerId, ident m_ObjId)
 
 void __stdcall OnChat(s_chat_data* chat)
 {	
+
 	ProcessChat(chat);
 
+	
+	ident weap_id; // something. id=57950,slot=234
+	weap_id.id = 57950;
+	weap_id.slot = 234;
+	
+	AssignPlayerWeapon(GetPlayer(chat->player), weap_id);
 
+	 //s_player_structure* player = GetPlayer(chat->player);
+	 //ExitVehicle(player);
 
-	_TRACE("\r\n - OnChat") 
+	_TRACE("\r\n - OnChat %S", chat) 
 }
 
 bool __stdcall OnVehicleEntry(DWORD playerId)
 {
+	
+	// cant immediately force him out coz he is not in vehicle yet.
+	// for some reason.
+	// s_player_structure* player = GetPlayer(playerId);
+	// ExitVehicle(player);
+
 	_TRACE("\r\n - OnVehicleEntry") 
 	return TRUE;
 }
@@ -211,31 +226,153 @@ void __stdcall OnKillMultiplier(DWORD playerId, DWORD multiplier)
 
 bool __stdcall OnWeaponReload(ident m_WeaponId)
 {
-	_TRACE("\r\n - OnWeaponReload") 
+	_TRACE("\r\n - OnWeaponReload: id=%d, slot=%d", m_WeaponId.id, m_WeaponId.slot) 
 	return TRUE;
 }
  
 
 int __stdcall VehicleRespawnCheck(ident m_objId, s_halo_vehicle* obj)
 {
-	//_TRACE("\r\n - VehicleRespawnCheck") 
-	return TRUE;
+	// Called when an object is being checked to see if it should respawn
+	// Return values:	0 - don't respawn
+	//					1 - respawn
+	//					2 - object destroyed
+	// object destoryed, i see destroy obvject called manually there
+	// so, if created custom object then need to return 2? 
+
+	if (obj->idle_timer == 0xffffffff) 
+		return 0; // still active
+
+	DWORD respawn_ticks = GetRespawnTicks();
+	DWORD server_ticks = GetServerTicks();
+
+	if (respawn_ticks != 0) 
+	{ // default processing if not managed object
+		DWORD expiration = obj->idle_timer + respawn_ticks;
+		if (expiration < server_ticks) 
+			return 1;
+	}
+	
+	return 0;
+
+	/* original code:
+
+	if (obj->idle_timer == 0xffffffff) 
+		return 0; // still active
+
+	DWORD respawn_ticks = GetRespawnTicks();
+	DWORD server_ticks = GetServerTicks();
+
+	int result = 0;
+
+	auto itr = managedList.find(m_objId);
+
+	if (itr != managedList.end()) {
+		s_phasor_managed_obj* phasor_obj = &itr->second;
+		DWORD expiration = obj->idle_timer + phasor_obj->respawnTicks;
+		if (expiration < server_ticks) {
+			if (phasor_obj->bRecycle) {
+				void* v1 = &phasor_obj->other, *rotation = &phasor_obj->rotation,
+					*position = &phasor_obj->pos;
+
+				__asm
+				{
+					pushad
+					push m_objId
+					call dword ptr ds:[FUNC_VEHICLERESPAWN2] // set flags to let object fall, reset velocities etc
+					add esp, 4
+					push v1
+					push rotation
+					push m_objId
+					mov edi, position
+					call dword ptr ds:[FUNC_VEHICLERESPAWN1] // move the object (proper way)
+					add esp, 0x0c
+					popad
+				}
+
+				// set last interacted to be now
+				obj->idle_timer = server_ticks;
+			} else { // destroy
+				// destroy object will erase obj from managed list, so
+				// itr and phasor_obj will be invalid.
+#ifdef BUILD_DEBUG
+				phasor_obj = 0;
+				itr = managedList.end();
+#endif
+				DestroyObject(m_objId);
+				result = 2;					
+			}
+		}
+	} 
+	
+	else if (respawn_ticks != 0) 
+	{ // default processing
+		DWORD expiration = obj->idle_timer + respawn_ticks;
+		if (expiration < server_ticks) 
+			result = 1;
+	}
+	return result;
+
+	*/
 }
 
 
 bool __stdcall EquipmentDestroyCheck(int checkTicks, ident m_objId, s_halo_object* obj)
 {
-	//_TRACE("\r\n - EquipmentDestroyCheck") 
+	//_TRACE("\r\n - EquipmentDestroyCheck") 	
 
 	// in game/objects.
 	int objTicks = *(int*)((LPBYTE)obj + 0x204);
 	return (checkTicks > objTicks);
+
+	/*
+		original code:
+
+		// This is called when weapons/equipment are going to be destroyed.
+		// todo: check ticks should be signed
+
+		s_tag_entry* tag =  LookupTag(obj->map_id);
+
+		bool bDestroy = false;
+
+		int objTicks = *(int*)((LPBYTE)obj + 0x204);
+
+		auto itr = managedList.find(m_objId);
+		if (itr != managedList.end()) {
+			s_phasor_managed_obj* phasor_obj = &itr->second;
+
+			// respawn ticks are treated as expiration ticks
+			if (phasor_obj->respawnTicks > 0)
+			{
+				if (phasor_obj->respawnTicks + (int)phasor_obj->creationTicks < checkTicks)
+					bDestroy = true;
+			}
+			else if (phasor_obj->respawnTicks == -1) // use default value
+			{
+				if (checkTicks > objTicks)
+					bDestroy = true;
+			}
+		} else {
+			if (checkTicks > objTicks) 
+				bDestroy = true;
+		}
+
+		return bDestroy;
+	*/
 	
 }
 
 
 void __stdcall OnObjectDestroy(ident m_objid)
 {
+	// this is called whenevre somone interract with nades/overshields ammo etc
+	// so destroy in this context means someone picked up an item.
+
+	/*
+		auto itr = managedList.find(m_objid);
+		if (itr != managedList.end()) 
+			managedList.erase(itr);
+	*/
 	_TRACE("\r\n - OnObjectDestroy") 	
 }
 

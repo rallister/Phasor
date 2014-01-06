@@ -63,7 +63,8 @@ void BuildTagCache()
 	s_tag_entry* tag = tag_table->next_ptr;
 	for (size_t x = 0; x < tag_table->entityCount; x++, tag++) 
 	{
-		_TRACE("tag cache %s\r\n", GetTagCacheKey(tag->tagType, tag->tagName).c_str())
+		_TRACE("tag cache %s: id=%d slot=%d\r\n", GetTagCacheKey(tag->tagType, tag->tagName).c_str(),  tag->id.id, tag->id.slot)
+		//_TRACE("%S", tag->tagName);
 
 		tag_cache.insert(std::pair<std::string, s_tag_entry*>(GetTagCacheKey(tag->tagType, tag->tagName), tag));
 	}

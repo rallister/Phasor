@@ -19,6 +19,8 @@ enum e_command_result
 };
 //------------------------------ combined definitions --------------------------------------
 
+
+
 #pragma pack(push, 1)
 
 	struct ident 
