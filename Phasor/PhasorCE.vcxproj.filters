@@ -2,42 +2,30 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Common\Common.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Common\FileIO.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Common\MyString.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Streams.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\Threads.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="ra.cpp">
-      <Filter>ra</Filter>
-    </ClCompile>
-    <ClCompile Include="Hooks\Hooks.cpp">
+    <ClCompile Include="Core\Addresses.cpp">
       <Filter>Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="Hooks\Addresses.cpp">
+    <ClCompile Include="Core\CrashHandler.cpp" />
+    <ClCompile Include="Core\Directory.cpp" />
+    <ClCompile Include="Core\Gametypes.cpp" />
+    <ClCompile Include="Core\Hooks.cpp">
       <Filter>Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="Events\Events.cpp" />
-    <ClCompile Include="Hooks\CrashHandler.cpp" />
-    <ClCompile Include="Hooks\Directory.cpp" />
-    <ClCompile Include="Hooks\MapLoader.cpp" />
-    <ClCompile Include="Hooks\Gametypes.cpp" />
-    <ClCompile Include="Hooks\tags.cpp" />
+    <ClCompile Include="Core\MapLoader.cpp" />
+    <ClCompile Include="Core\tags.cpp" />
+    <ClCompile Include="Core\MemorOperations.cpp" />
+    <ClCompile Include="Core\Core.cpp" />
+    <ClCompile Include="Core\Events.cpp" />
+    <ClCompile Include="Core\Packet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
-    <ClInclude Include="Common\Common.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Common\FileIO.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -47,38 +35,29 @@
     <ClInclude Include="Common\MyString.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\Streams.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\Threads.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\Types.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Common\noncopyable.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\vect3d.h">
+    <ClInclude Include="Core\Addresses.h">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\CrashHandler.h" />
+    <ClInclude Include="Core\Directory.h" />
+    <ClInclude Include="Core\Gametypes.h" />
+    <ClInclude Include="Core\MapLoader.h" />
+    <ClInclude Include="Core\tags.h" />
+    <ClInclude Include="Core\Version.h" />
+    <ClInclude Include="Core\MemoryOperations.h" />
+    <ClInclude Include="Core\Globals.h" />
+    <ClInclude Include="Core\Types.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="ra.h">
-      <Filter>ra</Filter>
+    <ClInclude Include="Core\vect3d.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Hooks\Hooks.h">
-      <Filter>Hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="Hooks\Addresses.h">
-      <Filter>Hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="Events\Events.h" />
-    <ClInclude Include="Common\Globals.h" />
-    <ClInclude Include="Hooks\CrashHandler.h" />
-    <ClInclude Include="Hooks\Version.h" />
-    <ClInclude Include="Hooks\Directory.h" />
-    <ClInclude Include="Hooks\MapLoader.h" />
-    <ClInclude Include="Hooks\Gametypes.h" />
-    <ClInclude Include="Hooks\tags.h" />
+    <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\Events.h" />
+    <ClInclude Include="Core\Packet.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phasor_includes.props" />

@@ -80,44 +80,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\FileIO.cpp" />
     <ClCompile Include="Common\MyString.cpp" />
-    <ClCompile Include="Common\Streams.cpp" />
-    <ClCompile Include="Common\Threads.cpp" />
-    <ClCompile Include="Events\Events.cpp" />
-    <ClCompile Include="Hooks\CrashHandler.cpp" />
-    <ClCompile Include="Hooks\Directory.cpp" />
-    <ClCompile Include="Hooks\Gametypes.cpp" />
-    <ClCompile Include="Hooks\MapLoader.cpp" />
-    <ClCompile Include="Hooks\tags.cpp" />
+    <ClCompile Include="Core\Core.cpp" />
+    <ClCompile Include="Core\MemorOperations.cpp" />
+    <ClCompile Include="Core\Events.cpp" />
+    <ClCompile Include="Core\CrashHandler.cpp" />
+    <ClCompile Include="Core\Directory.cpp" />
+    <ClCompile Include="Core\Gametypes.cpp" />
+    <ClCompile Include="Core\MapLoader.cpp" />
+    <ClCompile Include="Core\Packet.cpp" />
+    <ClCompile Include="Core\tags.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Hooks\Addresses.cpp" />
-    <ClCompile Include="Hooks\Hooks.cpp" />
-    <ClCompile Include="ra.cpp" />
+    <ClCompile Include="Core\Addresses.cpp" />
+    <ClCompile Include="Core\Hooks.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common\Common.h" />
     <ClInclude Include="Common\FileIO.h" />
     <ClInclude Include="Common\MyException.h" />
     <ClInclude Include="Common\MyString.h" />
     <ClInclude Include="Common\noncopyable.h" />
-    <ClInclude Include="Common\Streams.h" />
-    <ClInclude Include="Common\Threads.h" />
-    <ClInclude Include="Common\Types.h" />
-    <ClInclude Include="Common\vect3d.h" />
-    <ClInclude Include="Events\Events.h" />
-    <ClInclude Include="Hooks\CrashHandler.h" />
-    <ClInclude Include="Hooks\Directory.h" />
-    <ClInclude Include="Hooks\Gametypes.h" />
-    <ClInclude Include="Hooks\MapLoader.h" />
-    <ClInclude Include="Hooks\tags.h" />
-    <ClInclude Include="Hooks\Version.h" />
+    <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\Packet.h" />
+    <ClInclude Include="Core\Types.h" />
+    <ClInclude Include="Core\vect3d.h" />
+    <ClInclude Include="Core\MemoryOperations.h" />
+    <ClInclude Include="Core\Events.h" />
+    <ClInclude Include="Core\CrashHandler.h" />
+    <ClInclude Include="Core\Directory.h" />
+    <ClInclude Include="Core\Gametypes.h" />
+    <ClInclude Include="Core\MapLoader.h" />
+    <ClInclude Include="Core\tags.h" />
+    <ClInclude Include="Core\Version.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="Hooks\Addresses.h" />
-    <ClInclude Include="Hooks\Hooks.h" />
-    <ClInclude Include="Common\Globals.h" />
-    <ClInclude Include="ra.h" />
+    <ClInclude Include="Core\Addresses.h" />
+    <ClInclude Include="Core\Globals.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phasor_includes.props">

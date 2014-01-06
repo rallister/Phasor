@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include "main.h"
 
-#include "Hooks/Directory.h"
-#include "Hooks/Addresses.h"
-#include "Hooks/Hooks.h"
-#include "Hooks/MapLoader.h"
-#include "Hooks/Gametypes.h"
-#include "Hooks/CrashHandler.h"
-#include "Common/Globals.h"
+#include "Core/Directory.h"
+#include "Core/Addresses.h"
+#include "Core/MapLoader.h"
+#include "Core/Gametypes.h"
+#include "Core/CrashHandler.h"
+#include "Core/Globals.h"
+#include "Core/MemoryOperations.h"
 #include "Common/FileIO.h"
 #include "Common/MyString.h"
 
@@ -55,7 +55,7 @@ extern "C" __declspec(dllexport) void OnLoad()
 
 		BuildGametypeList();			
 
-		halo::InstallHooks();
+		InstallHooks();
 			
 	}
 	catch (std::exception& e)
