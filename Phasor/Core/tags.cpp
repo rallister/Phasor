@@ -32,7 +32,8 @@ std::map<std::string, s_tag_entry*> tag_cache;
 s_tag_entry* LookupTag(ident tagId)
 {
 	s_tag_index_table_header* tag_table = *(s_tag_index_table_header**)ADDR_TAGTABLE;
-	if (tagId.slot > tag_table->entityCount) return 0;
+	if (tagId.slot > tag_table->entityCount) 
+		return 0;
 	return &tag_table->next_ptr[tagId.slot];
 }
 
@@ -55,6 +56,14 @@ s_tag_entry* LookupTag(s_tag_type type, const std::string& tag_name)
 	return itr->second;
 }
 
+s_tag_entry* LookupTag2(std::string key)
+{
+	auto itr = tag_cache.find(key);
+	if (itr == tag_cache.end()) 
+		return 0;
+	return itr->second;
+}
+
 void BuildTagCache()
 {
 	tag_cache.clear();
@@ -63,9 +72,13 @@ void BuildTagCache()
 	s_tag_entry* tag = tag_table->next_ptr;
 	for (size_t x = 0; x < tag_table->entityCount; x++, tag++) 
 	{
+		
+		char tag_str[6];
+		tag->tagType.GetString(tag_str);
+		tag_str[4] = '\\';
+		tag_str[5] = 0;
+		_TRACE("\r\n  *** tag type[%s] tag name[%s]", tag_str,tag->tagName);
 		_TRACE("tag cache %s: id=%d slot=%d\r\n", GetTagCacheKey(tag->tagType, tag->tagName).c_str(),  tag->id.id, tag->id.slot)
-		//_TRACE("%S", tag->tagName);
-
 		tag_cache.insert(std::pair<std::string, s_tag_entry*>(GetTagCacheKey(tag->tagType, tag->tagName), tag));
 	}
 }

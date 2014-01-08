@@ -164,15 +164,16 @@ bool __stdcall OnObjectCreationAttempt(s_object_creation_disposition* creation_i
 
 DWORD __stdcall OnWeaponAssignment(DWORD playerId, ident owningObjectId, s_object_info* curWeapon, DWORD order)
 {
-	_TRACE("\r\n - OnWeaponAssignment") 
-	ident weap_id = curWeapon->id, result_id; // something.
+	// this method is also called to "arm" vehicles (at the start of the map)
+	_TRACE("\r\n - OnWeaponAssignment [%s]: ", curWeapon->tagName) 
+
+	ident weap_id = curWeapon->id;
 
 	return weap_id;
 }
 
 bool __stdcall OnObjectInteraction(DWORD playerId, ident m_ObjId)
 {
-	//_TRACE("\r\n - OnObjectInteraction") 
 	return TRUE;
 }
 
@@ -181,17 +182,37 @@ void __stdcall OnChat(s_chat_data* chat)
 
 	ProcessChat(chat);
 
-	
-	ident weap_id; // something. id=57950,slot=234
-	weap_id.id = 57950;
-	weap_id.slot = 234;
-	
-	AssignPlayerWeapon(GetPlayer(chat->player), weap_id);
+_TRACE("\r\n - OnChat %S", chat->msg) // 
 
-	 //s_player_structure* player = GetPlayer(chat->player);
-	 //ExitVehicle(player);
+	s_player_structure* s = GetPlayer(chat->player);
+	s_halo_biped* dude = GetBiped(s->object_id);
+	
+	vect3d v3d = dude->cameraView;
 
-	_TRACE("\r\n - OnChat %S", chat) 
+	s_tag_entry* tag;
+
+	size_t i = 0;	
+	tag = LookupTag2("weapons\\pistol\\pistolweap\\");
+
+	tag = LookupTag(make_ident(tag->id));
+
+	DWORD parentId = 0;
+
+	if (parentId == 0) 
+		parentId = 0xFFFFFFFF;
+
+	int respawnTime = -1;
+	
+	vect3d pos = dude->cameraView;
+
+	pos.x = pos.x++;
+	pos.y = pos.y++; //ReadNumber<float>(*args[i++]);
+	//pos.z = ReadNumber<float>(*args[i++]);
+		
+	ident objid;
+	CreateObject(tag->id, make_ident(s->object_id), -1, 0, &pos, &objid);
+	AssignPlayerWeapon(s, objid);
+	
 }
 
 bool __stdcall OnVehicleEntry(DWORD playerId)
@@ -226,7 +247,28 @@ void __stdcall OnKillMultiplier(DWORD playerId, DWORD multiplier)
 
 bool __stdcall OnWeaponReload(ident m_WeaponId)
 {
+	/* returning true is sufficient for standard way */
+	s_halo_weapon* weapon = (s_halo_weapon*)GetObjectAddress(m_WeaponId);
+	if (!weapon) 
+		return true;
+
+
+	s_player_structure* player = GetPlayer(weapon->base.ownerPlayer.slot);
+	
+	// todo: just testing if memory is being picked up, remove.
+	//AssignPlayerWeapon(player, m_WeaponId);
+
 	_TRACE("\r\n - OnWeaponReload: id=%d, slot=%d", m_WeaponId.id, m_WeaponId.slot) 
+	s_player_structure* xx = GetPlayerFromObjectId(weapon->base.ownerPlayer);
+
+	_TRACE("\r\nweapon id=%d, slot=%d, ownerid1=[%d,%d], ownerid2=[%d,%d] ammoclip=%d"
+			, m_WeaponId.id, m_WeaponId.slot
+			, weapon->base.ownerPlayer.id
+			, weapon->base.ownerPlayer.slot
+			, xx? xx->object_id.id : -1
+			, xx? xx->object_id.slot: -1
+			, weapon->ammo_clip)
+
 	return TRUE;
 }
  
@@ -249,8 +291,8 @@ int __stdcall VehicleRespawnCheck(ident m_objId, s_halo_vehicle* obj)
 	if (respawn_ticks != 0) 
 	{ // default processing if not managed object
 		DWORD expiration = obj->idle_timer + respawn_ticks;
-		if (expiration < server_ticks) 
-			return 1;
+		if (expiration < server_ticks)					
+			return 1;		
 	}
 	
 	return 0;
@@ -373,7 +415,12 @@ void __stdcall OnObjectDestroy(ident m_objid)
 		if (itr != managedList.end()) 
 			managedList.erase(itr);
 	*/
-	_TRACE("\r\n - OnObjectDestroy") 	
+
+	_TRACE("\r\n - OnObjectDestroy") 
+	s_player_structure * p = GetPlayer(m_objid);
+	if(p)
+		_TRACE("player destroyed???");
+	
 }
 
 

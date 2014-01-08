@@ -42,20 +42,21 @@ ident GetPlayerIdent(s_player_structure* player)
 	s_server_info* ss = GetServerStruct();
 
 	s_presence_item* player_entry = &ss->player_data[player->playerNum];
-	return make_ident((player->playerJoinCount << 0x10) | player_entry->playerId);
+	//return make_ident((player->playerJoinCount << 0x10) | player_entry->playerId);
 
 	//s_presence_item* player_entry = &ss->player_data[player->playerNum];
 	// if (player_entry->playerId == memory_id)
 	// original
 	//return make_ident((player->playerJoinCount << 0x10) | player->memory_id);
-	//return make_ident((player->playerJoinCount << 0x10) | player->object_id);
+	return make_ident((player->playerJoinCount << 0x10) | player->object_id);
 }
 
 s_player_structure* GetPlayer(unsigned long index)
 {
 	if (index >= 0 && index < 16) {
 		s_player_table* table = *(s_player_table**)ADDR_PLAYERBASE;
-		if (table) return &table->players[index];
+		if (table) 
+			return &table->players[index];
 	}
 	return 0;
 }	
@@ -200,6 +201,7 @@ void DispatchChat(e_chat_types type, const wchar_t* msg, s_player_structure* fro
 							continue;
 
 						s_halo_biped* obj = GetBiped(player->object_id);
+						
 						if (obj && obj->base.vehicleId == from_obj->base.vehicleId)
 							AddPacketToPlayerQueue(player->playerNum, PACKET_QUEUE_PARAMS);		
 					}
@@ -226,14 +228,16 @@ DWORD GetServerTicks()
 }
 
 
-bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle,const vect3d* location, ident& out_objid)
+bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle, vect3d* location, ident* out_objid)
 {
 	// creates a managed object so if using that need to implement
-	// managing of those obejcts.
+	// managing of those obejcts. actually not really, it will just disappear 
+	// if not used (i wonder with regard to max number,
 
 
 	s_tag_entry* tag = LookupTag(mapid);
-	if (!tag) return false;
+	if (!tag) 
+		return false;
 
 	if (!parentId) 
 		parentId = make_ident(-1);
@@ -253,7 +257,7 @@ bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle,co
 	}
 
 	s_object_creation_disposition* creation_disposition = (s_object_creation_disposition*)query;
-
+	//creation_disposition->map_id, creation_disposition->parent.id,creation_disposition->player_ident.id
 	// Set the spawn coordinates (if supplied)
 	if (location)
 		creation_disposition->pos = *location;
@@ -273,8 +277,9 @@ bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle,co
 		mov objid, eax
 		popad
 	}
-	out_objid = make_ident(objid);
-	if (!out_objid.valid())	return false;
+	*out_objid = make_ident(objid);
+	if (!out_objid->valid())	
+		return false;
 
 	// resolve the respawn timer
 	if (respawnTime == -1) // use gametype's value
@@ -298,11 +303,13 @@ bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle,co
 	return true;
 }
 
-// Forces a player to equip (and change to) the specified weapon.
-// does not work, need to sort out the getplayerident method.
-// as well as weapon not being found.
+// you have to make a weapon first (?) 
+// the weapon idents which are set up there they are on the map
+// so essentially, either make it, or find them by going through tags
+// weapon list which would be funny (if it works) but creating them is the way to go.
 bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 {
+
 	bool bSuccess = false;
 
 	s_halo_biped* biped = GetBiped(player->object_id);
@@ -313,47 +320,57 @@ bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 	// can't be in vehicle
 	if (!biped->base.vehicleId.valid())	
 	{
+		
 		// make sure they passed a weapon
 		s_halo_weapon* weapon = (s_halo_weapon*)GetObjectAddress(weaponid);
 
 		if (!weapon) 
 			return false;
-			
-		// todo: tag is not lookingup correctly
-		// assault rifle is a weapon, tried with:
-		// on gulch:
-		// id = 57950, slot=234
 		
-		//s_tag_entry* weap_tag = LookupTag(weapon->base.map_id);
-		//if (weap_tag->tagType != TAG_WEAP) 
-		//	return false;
+		s_player_structure* xx = GetPlayerFromObjectId(weapon->base.ownerPlayer);
+		_TRACE("\r\nweapon id=%d, slot=%d, player=[%d,%d] ammoclip=%d", weaponid.id, weaponid.slot, player->object_id.slot, player->object_id.id, weapon->ammo_clip)		
+		
+		ident playerObj = player->object_id; 
+		
+		s_halo_object_table* object_table = *(s_halo_object_table**)ADDR_OBJECTBASE;	
+		s_halo_object_header* obj = &object_table->entries[playerObj.slot];
+		DWORD mask = make_ident((DWORD)player);
 
-		DWORD mask = GetPlayerIdent(player); // dodgy was accessing memory_id, i assume it supposed to be the index inplayer table.
-		ident playerObj = player->object_id;
+		/*
+			ident gg;
+			gg.id = obj->id;
+			gg.slot = 90; 0 - 90 fine, owner id is always 0 => point to use it to check for player ident correctness.
+		*/
+
 
 		__asm
 		{
 			pushad
 			push 1
 			mov eax, weaponid
-			mov ecx, playerObj
-			call dword ptr ds:[FUNC_PLAYERASSIGNWEAPON] // assign the weapon
+			mov ecx, [playerObj]
+			call dword ptr ds:[FUNC_PLAYERASSIGNWEAPON] 
 			add esp, 4
 			mov bSuccess, al
 			cmp al, 1
 			jnz ASSIGNMENT_FAILED
-			mov ecx, mask
+			mov ecx, gg // <-- this, works same as DWORD mask = make_ident((DWORD)player); still wrong coz. Also does not look like it cares about slot part.
 			mov edi, weaponid
 			push -1
 			push -1
 			push 7
 			push 1
-			call DWORD PTR ds:[FUNC_NOTIFY_WEAPONPICKUP] // notify clients of the assignment
+			call DWORD PTR ds:[FUNC_NOTIFY_WEAPONPICKUP] // notification happened, but weapon did not switch (picking up ammo for pistol, but it did not appear).
 			add esp, 0x10
 ASSIGNMENT_FAILED:
 			popad
 		}
+
+		_TRACE("\r\n...weapon id=%d, slot=%d, player=[%d,%d]", weaponid.id, weaponid.slot, weapon->base.ownerPlayer.id, weapon->base.ownerPlayer.slot)	
 	}
+
+	
+		
 
 	return bSuccess;
 }
