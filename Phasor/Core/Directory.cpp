@@ -11,11 +11,10 @@ wstring g_DataDirectory;
 wstring g_CrashDirectory;
 wstring g_ScriptsDirectory;
 wstring g_LogsDirectory;
-wstring g_OldLogsDirectory;
+
 wstring g_MapDirectory;
 
-void CreateSubDirectory(const wstring& name, wstring& out, 
-	const wstring& relative = g_ProfileDirectory)
+void CreateSubDirectory(const wstring& name, wstring& out, const wstring& relative = g_ProfileDirectory)
 {
 	out = relative + name;
 	if (!NDirectory::CreateDirectory(out)) {
@@ -67,6 +66,5 @@ void SetupDirectories()
 		CreateSubDirectory(L"scripts", g_ScriptsDirectory);
 
 	CreateSubDirectory(L"logs", g_LogsDirectory);
-	CreateSubDirectory(L"old", g_OldLogsDirectory, g_LogsDirectory);
 	CreateSubDirectory(L"crash", g_CrashDirectory);
 }

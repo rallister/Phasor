@@ -14,8 +14,6 @@
 
 #define WAIT_AND_QUIT Sleep(1000); exit(1);
 
-void LocateDirectories();
-
 FILE* _TRACE_FILE;
 
 void _DO_TRACE(const char *fmt, ...) {
@@ -43,10 +41,10 @@ extern "C" __declspec(dllexport) void OnLoad()
 	//g_PrintStream.reset(new halo::CHaloPrintStream());
 	//*g_PrintStream << L"44656469636174656420746f206d756d2e2049206d69737320796f752e" << endl;
 
-	LocateDirectories();
-
 	try
 	{
+		SetupDirectories();
+		
 		LocateAddresses();		
 
 		CrashHandler::InstallCatchers();
@@ -56,7 +54,7 @@ extern "C" __declspec(dllexport) void OnLoad()
 		BuildGametypeList();			
 
 		InstallHooks();
-			
+		
 	}
 	catch (std::exception& e)
 	{		
@@ -72,28 +70,10 @@ extern "C" __declspec(dllexport) void OnLoad()
 
 void OnServerClose()
 {
-	
-	//halo::game::cleanupPlayers(true);
-
 	if(_TRACE_FILE)
 		fclose(_TRACE_FILE);
 
 	ExitProcess(0);
-}
-
-// Locate and create all directories Phasor will use. If an error occurs
-// this function never returns and the process is terminated.
-void LocateDirectories()
-{
-	try 
-	{
-		SetupDirectories();
-	}
-	catch (std::exception & e)
-	{
-		_TRACE("\r\n%s", e.what())
-		WAIT_AND_QUIT
-	}	
 }
 
 // Windows entry point

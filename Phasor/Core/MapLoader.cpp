@@ -90,18 +90,21 @@
 	bool GetMapName(const std::wstring& filePath, std::string& mapname)
 	{
 		CInFile file;
-		if (!file.Open(filePath)) return false;
+		if (!file.Open(filePath)) 
+			return false;
 
 		BYTE header[2048] = {0};
 		DWORD read;
-		if (!file.Read(header, sizeof(header), &read)) return false;
+		if (!file.Read(header, sizeof(header), &read)) 
+			return false;
 
 		hMapHeader* MapHeader = (hMapHeader*)header;
-		if (MapHeader->integrity == 'head' && MapHeader->type  == 7
-			&& MapHeader->mapType == 1)
+		
+		if (MapHeader->integrity == 'head' && MapHeader->type  == 7 && MapHeader->mapType == 1)
 		{
 			mapname = MapHeader->name;
 		}
+		
 		return mapname.size() != 0;
 	}
 
@@ -117,9 +120,11 @@
 		maxCount = (LPDWORD)UlongToPtr(ADDR_MAXMAPCOUNT);
 
 		std::wstring mapSearchExp;
+		
 		if (g_MapDirectory.size()) // if manually set
 			mapSearchExp = g_MapDirectory + L"\\*map";
-		else {
+		else 
+		{
 			// let halo find the map directory
 			char szMapDir[1024] = {0};
 
@@ -144,34 +149,39 @@
 			_TRACE("Building map list from : %S",  g_MapDirectory.c_str());
 
 			std::list<std::wstring> files;
+			
 			NDirectory::FindFiles(mapSearchExp, files);
 
-			if (table_count < files.size()) {
+			if (table_count < files.size()) 
+			{
 				table_count = files.size() + 50;
-				mapTable = (mapTableInfo*)GlobalReAlloc(mapTable,
-					sizeof(mapTableInfo)*table_count, GMEM_ZEROINIT);
+				mapTable = (mapTableInfo*)GlobalReAlloc(mapTable, sizeof(mapTableInfo)*table_count, GMEM_ZEROINIT);
 			}
 
-			for (auto itr = files.cbegin(); itr != files.cend(); ++itr) {
+			for (auto itr = files.cbegin(); itr != files.cend(); ++itr) 
+			{
 				const std::wstring& file = *itr;
 
-				if (file.size() < 0x20) { // halo imposed limit
+				if (file.size() < 0x20) 
+				{ // halo imposed limit
+				
 					std::wstring path_to_file = g_MapDirectory + file;
 					std::string base_map;
-					if (GetMapName(path_to_file, base_map)) {
+					
+					if (GetMapName(path_to_file, base_map)) 
+					{
 						// name of map minus extension
-						std::string map_name = NarrowString(
-							file.substr(0, file.size()-4));
+						std::string map_name = NarrowString(file.substr(0, file.size()-4));
+						
 						ToLowercase(map_name);
 
 						// Store the actual map and orig map names
 						fileMap[map_name] = base_map;
 
-						//out << "Added map " << map_name << " with base map " 
-						//	<< base_map << endl;
+						//out << "Added map " << map_name << " with base map " << base_map << endl;
 
-						// Default map, let halo add it.
-						if (base_map == map_name)
+						
+						if (base_map == map_name)// Default map, let halo add it.
 							continue;
 					
 						// Add the data into the map table
@@ -184,10 +194,7 @@
 
 						// Increment counters
 						*curCount += 1; *maxCount += 1;	modCount++;
-
-					} /*else {
-						out << L"Ignoring " << file << " because the base map couldn't be determined" << endl;
-					}*/
+					}
 				}
 				else 
 				{					
@@ -370,9 +377,7 @@ MAP_NOT_FOUND:
 			}
 		}
 
-		static bool BuildNewEntry(const std::string& map,
-			const std::wstring& gametype, const std::vector<std::string>& scripts,
-			s_mapcycle_entry& entry)
+		static bool BuildNewEntry(const std::string& map,const std::wstring& gametype, const std::vector<std::string>& scripts,	s_mapcycle_entry& entry)
 		{
 			// Get the gametype data
 			if (!ReadGametypeData(gametype, entry.gametype_data, sizeof(entry.gametype_data)))
@@ -404,16 +409,13 @@ MAP_NOT_FOUND:
 				DWORD size = sizeof(s_script_list);
 				
 				entry.scripts = (s_script_list*)GlobalAlloc(GMEM_FIXED, size);
-
 				entry.scripts->count = scripts.size();
-
 				entry.scripts->script_names = (char**)GlobalAlloc(GMEM_FIXED, sizeof(entry.scripts->script_names[0])*scripts.size());
 
 				// Populate the script data
 				for (size_t x = 0; x < scripts.size(); x++)
 				{
 					entry.scripts->script_names[x] = (char*)GlobalAlloc(GMEM_FIXED, scripts[x].size() + 1);
-
 					strcpy_s(entry.scripts->script_names[x], scripts[x].size() + 1, scripts[x].c_str());
 				}
 
@@ -490,7 +492,10 @@ MAP_NOT_FOUND:
 		bool Reserve(int n)
 		{
 			int free_count = (int)allocated_count - cur_count;
-			if (free_count >= n) return true;
+			
+			if (free_count >= n) 
+				return true;
+				
 			size_t new_size = allocated_count + n - free_count;
 			return Expand(new_size - allocated_count);
 		}
