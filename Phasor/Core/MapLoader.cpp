@@ -603,8 +603,7 @@ MAP_NOT_FOUND:
 	e_command_result sv_mapcycle_begin(void*)
 	{	
 		if (!mapcycleList.size())		
-			return kProcessed;
-		}
+			return kProcessed;	
 
 		std::unique_ptr<CHaloMapcycle> new_cycle = std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
 		
