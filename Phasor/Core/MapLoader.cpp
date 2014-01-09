@@ -178,9 +178,6 @@
 						// Store the actual map and orig map names
 						fileMap[map_name] = base_map;
 
-						//out << "Added map " << map_name << " with base map " << base_map << endl;
-
-						
 						if (base_map == map_name)// Default map, let halo add it.
 							continue;
 					
@@ -264,7 +261,8 @@ MAP_NOT_FOUND:
 	// This function is effectively sv_map_next
 	void StartGame(const char* map)
 	{
-		if (*(DWORD*)ADDR_GAMEREADY != 2) {
+		if (*(DWORD*)ADDR_GAMEREADY != 2) 
+		{
 			// start the server not just game
 			__asm
 			{
@@ -282,7 +280,8 @@ MAP_NOT_FOUND:
 				popad
 			}
 		}
-		else {
+		else 
+		{
 			// Halo 1.09 addresses
 			// 00517845  |.  BF 90446900   MOV EDI,haloded.00694490                                  ;  UNICODE "ctf1"
 			//0051784A  |.  F3:A5         REP MOVS DWORD PTR ES:[EDI],DWORD PTR DS:[ESI]
@@ -465,11 +464,17 @@ MAP_NOT_FOUND:
 		// Remove a game from the current cycle
 		bool DeleteGame(size_t index)
 		{
-			if (index < 0 || index >= cur_count) return false;
+			if (index < 0 || index >= cur_count) 
+				return false;
+				
 			s_mapcycle_entry* to_remove = start + index;
+			
 			Free(to_remove, 1);
+			
 			DWORD copy_count = cur_count - index - 1;
+			
 			memcpy(to_remove, to_remove + 1, copy_count * sizeof(to_remove[0]));
+			
 			cur_count--;
 
 			if (active) {
@@ -478,6 +483,7 @@ MAP_NOT_FOUND:
 				// Make sure the index Halo's using is still valid
 				if (g_mapcycle_header->current >= cur_count)
 					g_mapcycle_header->current = -1; // restart cycle
+					
 				else if (g_mapcycle_header->current == index)
 					g_mapcycle_header->current--;
 			}
@@ -519,14 +525,21 @@ MAP_NOT_FOUND:
 		// Changes the active mapcycle and restarts the game
 		void SetActiveCycle(std::unique_ptr<CHaloMapcycle> new_cycle)
 		{
-			if (new_cycle->size() == 0) return;
-			if (active) active->NoLongerActive();
+			if (new_cycle->size() == 0) 
+				return;
+				
+			if (active) 
+				active->NoLongerActive();
+				
 			active = std::move(new_cycle);
+			
 			active->Active();
+			
 			mapcycle_header.games = active->start;
 			mapcycle_header.cur_count = active->cur_count;
 			mapcycle_header.allocated_count = active->allocated_count;
 			mapcycle_header.current = -1;
+			
 			StartGame(active->start->map);
 		}
 
@@ -554,30 +567,8 @@ MAP_NOT_FOUND:
 		return index >= 0 && index < g_mapcycle_header->cur_count
 			? g_mapcycle_header->games + index : NULL;
 	}
-	//
-	//
-	//// Checks if the map, gametype and all scripts are valid.
-	//bool ValidateUserInput(const s_phasor_mapcycle_entry& entry, COutStream& out)
-	//{
-	//	if (!IsValidMap(entry.map))	{
-	//		out << entry.map << L" isn't a valid map." << endl;
-	//		return false;
-	//	}
-
-	//	if (!gametypes::IsValidGametype(entry.gametype)) {
-	//		out << entry.gametype << L" isn't a valid gametype." << endl;
-	//		return false;
-	//	}
-
-	//	bool success = true;
-	//	for (size_t x = 0; x < entry.scripts.size(); x++) {
-	//		if (!scriptloader::IsValidScript(entry.scripts[x])) {
-	//			out << entry.scripts[x] << L" isn't a valid script." << endl;
-	//			success = false;
-	//		}
-	//	}
-	//	return success;
-	//}
+	
+	
 
 	// Effectively executes sv_map to run a new game
 	bool LoadGame(const s_phasor_mapcycle_entry& game)
@@ -608,47 +599,32 @@ MAP_NOT_FOUND:
 		return true;
 	}
 
-	//bool ReadGameDataFromUser(s_phasor_mapcycle_entry& entry,	commands::CArgParser& args, COutStream& out)
-	//{
-	//	entry.map = args.ReadString();
-	//	entry.gametype = args.ReadWideString();
-	//	for (size_t x = 2; x < args.size(); x++)
-	//		entry.scripts.push_back(args.ReadString());
-	//	return ValidateUserInput(entry, out);
-	//}
-
 	//e_command_result sv_mapcycle_begin(void*, commands::CArgParser& args)
 	e_command_result sv_mapcycle_begin(void*)
-	{
-	//	// Check if there is any cycle data
-		if (!mapcycleList.size()) {
-			//out << L"The mapcycle is empty." << endl;
-			return e_command_result::kProcessed;
+	{	
+		if (!mapcycleList.size())		
+			return kProcessed;
 		}
 
-		std::unique_ptr<CHaloMapcycle> new_cycle = 
-			std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
-		if (!new_cycle) {
-			//out << L"Cannot allocate memory for new mapcycle." << endl;
-			return e_command_result::kProcessed;
-		}
+		std::unique_ptr<CHaloMapcycle> new_cycle = std::unique_ptr<CHaloMapcycle>(new CHaloMapcycle());
+		
+		if (!new_cycle) 			
+			return kProcessed;		
 
-		if (!new_cycle->AddGames(mapcycleList)) {
-			//out << L"Previous errors prevent the mapcycle from being started." << endl;
-			return e_command_result::kProcessed;
-		}
+		if (!new_cycle->AddGames(mapcycleList))			
+			return kProcessed;		
 
 		cycle_loader->SetActiveCycle(std::move(new_cycle));
 		in_mapcycle = true;
 
-		return e_command_result::kProcessed;
+		return kProcessed;
 	}
 
-	// e_command_result sv_mapcycle_add(void*, 
-    //	commands::CArgParser& args, COutStream& out)
+	// e_command_result sv_mapcycle_add(void*,	commands::CArgParser& args, COutStream& out)
 	//{
 	//	s_phasor_mapcycle_entry entry;
-	//	if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
+	//	if (!ReadGameDataFromUser(entry, args, out)) 
+	//		return e_command_result::kProcessed;
 
 	//	// If we're in the mapcycle add the data to the current playlist
 	//	if (in_mapcycle) 
@@ -679,51 +655,59 @@ MAP_NOT_FOUND:
 	//	}
 
 	//	mapcycleList.erase(mapcycleList.begin() + index);
+	
 	//	if (in_mapcycle)
 	//		cycle_loader->GetActive().DeleteGame(index);
 
 	//	// Display cycle as it is now
 	//	return sv_mapcycle(exec_player, args, out);
+	
 	//}
 
-	//e_command_result sv_mapcycle(void*, 
-	//	commands::CArgParser& args, COutStream& out)
+	//e_command_result sv_mapcycle(void*, commands::CArgParser& args, COutStream& out)
 	//{
 	//	out.wprint(L"   %-20s%-20s%s", L"Map", L"Variant", L"Script(s)");
+	
 	//	const wchar_t* fmt = L"%-3i%-20s%-20s%s";
-
+	
 	//	for (size_t x = 0; x < mapcycleList.size(); x++)
 	//	{
 	//		s_phasor_mapcycle_entry& entry = mapcycleList[x];
+	
 	//		std::string scripts_desc;
+	
 	//		for (size_t i = 0; i < entry.scripts.size(); i++) {
 	//			if (i != 0) scripts_desc += ",";
 	//			scripts_desc += entry.scripts[i].c_str();
 	//		}			
+	
 	//		std::wstring scripts_desc_w = WidenString(scripts_desc);
-	//		if (!scripts_desc_w.size()) scripts_desc_w = L"<no scripts>";
+	
+	//		if (!scripts_desc_w.size()) 
+	//			scripts_desc_w = L"<no scripts>";
 	//		std::wstring map_w = WidenString(entry.map);
 	//		out.wprint(fmt, x, map_w.c_str(), entry.gametype.c_str(), 
 	//			scripts_desc_w.c_str());
 	//	}
 
-	//	return e_command_result::kProcessed;
+	//	return kProcessed;
 	//}
 
-	//e_command_result sv_map(void*, 
-	//	commands::CArgParser& args, COutStream& out)
+	//e_command_result sv_map(void*, commands::CArgParser& args, COutStream& out)
 	//{
 	//	s_phasor_mapcycle_entry entry;
-	//	if (!ReadGameDataFromUser(entry, args, out)) return e_command_result::kProcessed;
+	//
+	//	if (!ReadGameDataFromUser(entry, args, out)) 
+	//		return kProcessed;
 	//
 	//	LoadGame(entry, out);
-	//	return e_command_result::kProcessed;
+	//	return kProcessed;
 	//}
 
 	//e_command_result sv_end_game(void*, commands::CArgParser&, COutStream&)
 	//{
 	//	in_mapcycle = false;
-	//	return e_command_result::kGiveToHalo;
+	//	return kGiveToHalo;
 	//}
 
 	// --------------------------------------------------------------------
