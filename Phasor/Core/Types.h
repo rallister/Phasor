@@ -704,3 +704,25 @@ enum e_command_result
 		s_table_header header;
 		s_player_structure players[16];
 	};
+
+
+///====================
+// Phasor type
+struct DamageModifier {
+		s_tag_entry* tag;
+		s_tag_entry orig_tag;
+		s_damage_amount orig_dmg;
+		s_damage_tag* data;
+
+		explicit DamageModifier(s_tag_entry* tag)
+			: tag(tag), orig_tag(*tag)
+		{
+			data = (s_damage_tag*)tag->metaData;
+			orig_dmg = data->amount;
+		}
+
+		~DamageModifier() {
+			*tag = orig_tag;
+			data->amount = orig_dmg;
+		}
+	};

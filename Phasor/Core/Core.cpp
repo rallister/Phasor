@@ -167,19 +167,22 @@ void DispatchChat(e_chat_types type, const wchar_t* msg, s_player_structure* fro
 
 		case kChatTeam:
 			{
-				/*for (int i = 0; i < 16; i++) 
-				{
-					s_player_structure* player = GetPlayer(i);
+				/*
+					// retrieving as above does not distinguish between team 0 and team not present
+					// i assume here it's a lil different coz there is some garbage with respect to mem init.
+					for (int i = 0; i < 16; i++) 
+					{
+						s_player_structure* player = GetPlayer(i);
 
-					if (player && player->team == from->team) 
-						AddPacketToPlayerQueue(player->playerNum, PACKET_QUEUE_PARAMS);
-				}*/
+						if (player && player->team == from->team) 
+							AddPacketToPlayerQueue(player->playerNum, PACKET_QUEUE_PARAMS);
+					}
+				*/
 
 				s_server_info * server_info = GetServerStruct();
 
 				for (int i = 0; i < 16; i++) 
-				{   // retrieving as above does not distinguish between team 0 and team not present
-					// i assume here it's a lil different coz there is some garbage with respect to mem init.
+				{  
 					s_presence_item* player_entry = &server_info->player_data[i];
 					if (player_entry->team == from->team) 
 						AddPacketToPlayerQueue(player_entry->playerId, PACKET_QUEUE_PARAMS);											
@@ -307,6 +310,7 @@ bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle, v
 // the weapon idents which are set up there they are on the map
 // so essentially, either make it, or find them by going through tags
 // weapon list which would be funny (if it works) but creating them is the way to go.
+// anyway this is not essential for what i need it, so leave figuring that out as a todo.
 bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 {
 
@@ -334,7 +338,7 @@ bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 		
 		s_halo_object_table* object_table = *(s_halo_object_table**)ADDR_OBJECTBASE;	
 		s_halo_object_header* obj = &object_table->entries[playerObj.slot];
-		DWORD mask = make_ident((DWORD)player);
+		DWORD mask = make_ident(player->object_id.id); // this makes no sense 
 
 		/*
 			ident gg;
@@ -342,19 +346,18 @@ bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 			gg.slot = 90; 0 - 90 fine, owner id is always 0 => point to use it to check for player ident correctness.
 		*/
 
-
 		__asm
 		{
 			pushad
 			push 1
 			mov eax, weaponid
-			mov ecx, [playerObj]
+			mov ecx, playerObj
 			call dword ptr ds:[FUNC_PLAYERASSIGNWEAPON] 
 			add esp, 4
 			mov bSuccess, al
 			cmp al, 1
 			jnz ASSIGNMENT_FAILED
-			mov ecx, gg // <-- this, works same as DWORD mask = make_ident((DWORD)player); still wrong coz. Also does not look like it cares about slot part.
+			mov ecx, mask // <-- this, works same as DWORD mask = make_ident((DWORD)player); still wrong coz. Also does not look like it cares about slot part.
 			mov edi, weaponid
 			push -1
 			push -1
@@ -514,3 +517,76 @@ void s_halo_weapon::SyncAmmo(ident weaponId)
 }
 
 //--------------------------------------------------------------------
+
+// not working
+void ApplyDamage(ident receiver, ident causer, const s_tag_entry& dmg_tag, float mult, int flags)
+{
+	//if (!receiver.valid() || objects::GetObjectAddress(receiver) == NULL || (causer.valid() && objects::GetObjectAddress(causer) == NULL))
+	//	return false;
+
+	s_damage_info dmg;
+	/* 
+	compiler says no such thing _unused etc.
+	memset(dmg._unused_4, 0, sizeof(dmg._unused_4));
+	memset(dmg._unused_5, 0, sizeof(dmg._unused_5));
+	*(WORD*)dmg._unused_4 = 0xFFFF;
+	*(WORD*)(dmg._unused_4 + 8) = 0xFFFF;
+	*(WORD*)(dmg._unused_5 + 4) = 0xFFFF;
+	*/
+	dmg.tag_id = dmg_tag.id;
+	dmg.causer = causer;
+	dmg.flags = flags;
+	dmg.modifier = 1;
+	dmg.modifier1 = mult;
+
+	s_player_structure* player_causer = GetPlayerFromObjectId(causer);
+	dmg.player_causer = player_causer ? player_causer->object_id : ident(); //hmm.
+
+	//0018DBF8  5B 07 D1 E8 84 00 00 00 FF FF FF FF FF FF FF FF  [Ñè„...ÿÿÿÿÿÿÿÿ
+	//0018DC08  FF FF 00 00 00 00 00 00 FF FF 00 00 00 00 00 00  ÿÿ......ÿÿ......
+	//0018DC18  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+	//0018DC28  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+	//0018DC38  00 00 80 3F 00 00 80 3F 00 00 00 00 FF FF 00 00  ..€?..€?....ÿÿ..
+
+	__asm {
+		pushad
+
+		push 0
+		push -1
+		push -1
+		push -1
+		push receiver
+		lea edi, dmg
+		push edi
+		call CC_DAMAGELOOKUP
+		add esp, 0x18
+
+		popad
+	}
+}
+
+	
+// Temporarily modifies globals\vehicle_hit_environment and uses it to apply damage.
+bool ApplyDamage(ident receiver, ident causer, float dmg, int flags)
+{
+	s_tag_entry* dmg_tag = LookupTag(s_tag_type("jpt!"), "globals\\vehicle_hit_environment");
+	if (!dmg_tag) {
+			
+		s_server_info* info = GetServerStruct();
+		
+		_TRACE_DEBUG_APPLYING_VEHICLE_DAMAGE_NO_VEHICLE_HIT(info->map_name)
+		return false;
+	}
+
+	// Temporarily modify the tag
+	static const char* phasor_dmg = "phasor_damage";
+	DamageModifier dmgMod(dmg_tag);
+	dmg_tag->tagName = phasor_dmg;
+
+	s_damage_tag* data = (s_damage_tag*)dmg_tag->metaData;
+	data->amount = s_damage_amount(1,1,1);//dmg,dmg,dmg);
+
+	ApplyDamage(receiver, causer, *dmg_tag, dmg, flags);
+	return true;
+}
+

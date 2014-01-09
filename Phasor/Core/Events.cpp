@@ -136,8 +136,13 @@ DWORD __stdcall OnTeamSelection(DWORD cur_team, s_machine_info* machine)
 
 bool __stdcall OnTeamChange(DWORD playerId, DWORD team)
 {
-	_TRACE("\r\n - OnTeamChange") 
-	return true;
+		s_player_structure* player = GetPlayer(playerId);
+		bool allow = true;		
+
+		ident ii = make_ident(player->object_id.id);
+
+		_TRACE("\r\n - OnTeamChange : [%d,%d] %S ii is [%d,%d]", player->object_id.id, player->object_id.slot, player->playerName, ii.id, ii.slot) 
+		return allow;
 }
 
 void __stdcall OnPlayerSpawn(DWORD playerId, ident m_objectId)
@@ -153,11 +158,39 @@ void __stdcall OnPlayerSpawnEnd(DWORD playerId, ident m_objectId)
 
 void __stdcall OnObjectCreation(ident m_objectId)
 {
-	//_TRACE("\r\n - OnObjectCreation") 
+	_TRACE("\r\n - OnObjectCreation [%d,%d]", m_objectId.id, m_objectId.slot) 
 }
 
 bool __stdcall OnObjectCreationAttempt(s_object_creation_disposition* creation_info)
 {
+
+	
+		// original code, checkd scripts for allow, then an alternative tag was returned so and based on that
+		// returned it.
+		// i dotn think i need to modify anything.
+		
+		/*
+			ident change_id;
+			bool allow;
+
+			//scripting::events::e_ident_or_bool r = scripting::events::OnObjectCreationAttempt(creation_info, change_id, allow);
+
+			if (r == kBool) 
+				return allow;
+
+			else 
+			{
+			
+				s_tag_entry* change_tag = LookupTag(change_id);
+				s_tag_entry* default_tag = LookupTag(creation_info->map_id);
+
+				if (change_tag && default_tag && change_tag->tagType == default_tag->tagType) {
+					creation_info->map_id = change_id;
+				}
+				return true;
+			}	
+		*/
+
 	//_TRACE("\r\n - OnObjectCreationAttempt") 
 	return TRUE;
 }
@@ -170,10 +203,34 @@ DWORD __stdcall OnWeaponAssignment(DWORD playerId, ident owningObjectId, s_objec
 	ident weap_id = curWeapon->id;
 
 	return weap_id;
+	/*
+		// original code.
+		halo::s_player* player = game::getPlayer(playerId);
+		ident weap_id = curWeapon->id, result_id;
+
+		bool b = scripting::events::OnWeaponAssignment(player, owningObjectId, order, weap_id,
+			result_id);
+
+		// can return 0xFFFFFFFF to not assign a weapon
+		if (b && (!result_id.valid() || LookupTag(result_id))) return result_id;
+		else return weap_id;	
+	*/
 }
 
 bool __stdcall OnObjectInteraction(DWORD playerId, ident m_ObjId)
 {
+	/*
+		bool allow = true;
+		halo::s_player* player = game::getPlayer(playerId);
+		if (player) {
+			objects::s_halo_object* obj = (objects::s_halo_object*)
+				objects::GetObjectAddress(m_ObjId);
+
+			allow = scripting::events::OnObjectInteraction(*player, m_ObjId, obj->map_id);		
+		}
+		return allow
+
+	*/
 	return TRUE;
 }
 
@@ -237,6 +294,64 @@ bool __stdcall OnPlayerDeath(DWORD killerId, DWORD victimId, DWORD mode)
 {
 	_TRACE("\r\n - OnPlayerDeath") 
 	return TRUE;
+	/*
+	// no real need for sv_killed there, it just sets up the mode 
+	// to be passed to the scripting engine.
+	// could be used for spamming rules.
+
+	s_player_structure* victim = GetPlayer(victimId);
+	s_player_structure* killer = GetPlayer(killerId);
+
+	if (!victim) 
+		return true;
+
+	// log the death based on type
+	switch (mode)
+	{
+	case 1: // fall dmg or server kill
+		{
+			if (victim->sv_killed)	
+				mode = 0;			
+					
+			_TRACE_DEATH_DAMAGE(victim->playerName, mode)
+
+		} break;
+
+	case 2: // killed by guardians
+		{
+			_TRACE_DEATH_GUARDIANS(victim->playerName)
+		} break;
+
+	case 3: // killed by a vehicle
+		{
+			_TRACE_DEATH_VEHICLE(victim->playerName)
+
+		} break;
+
+	case 4: // killed by another player
+		{
+			if (killer) 
+			{				
+				_TRACE_DEATH_KILL(killer->playerName,victim->playerName)
+			}
+		} break;
+
+	case 5: // betrayed
+		{				
+			if (killer) {
+				_TRACE_DEATH_BETRAY(killer->playerName, victim->playerName)
+			}
+		} break;
+
+	case 6: // suicide
+		{
+			_TRACE_DEATH_SUICIDE(victim->playerName)
+			
+		} break;
+	}
+			
+	return OnPlayerKill(*victim, killer, mode);
+	*/
 }
 
 void __stdcall OnKillMultiplier(DWORD playerId, DWORD multiplier)
@@ -269,7 +384,19 @@ bool __stdcall OnWeaponReload(ident m_WeaponId)
 			, xx? xx->object_id.slot: -1
 			, weapon->ammo_clip)
 
+	DWORD mask = make_ident(player->object_id.id);
+	_TRACE("\r\nMASK = [%dL]", mask)
 	return TRUE;
+
+	/* original:
+		objects::s_halo_weapon* weap = (objects::s_halo_weapon*)objects::GetObjectAddress(m_WeaponId);
+		if (!weap) return true;
+		halo::s_player* player = getPlayer(weap->base.ownerPlayer.slot);
+		return scripting::events::OnWeaponReload(player, m_WeaponId);
+
+		i noticed that when i used make_ident using player object_id object id and slot was actualy reversed
+		so will need to look at it again.
+	*/
 }
  
 
@@ -432,6 +559,24 @@ bool __stdcall OnDamageLookup(s_damage_info* dmg, ident* receiver)
 	
 	_TRACE("\r\n - OnDamageLookup %s -> [%s]",tag->tagName, xs->tagName)
 
+	/*
+		// Original code:
+		s_tag_entry* tag = LookupTag(dmg->tag_id);
+		damage_script_options opts;
+		bool allow = scripting::events::OnDamageLookup(dmg, tag->metaData, *receiver, opts);
+
+		if (allow) {
+			dmg->causer = opts.causer;
+			dmg->player_causer = opts.causer_player;
+			dmg->flags = opts.flags;
+			dmg->tag_id = opts.tag;
+			dmg->modifier1 = opts.modifier;
+			*receiver = opts.receiver;
+
+		}
+		return allow;
+
+	*/
 	return true;
 }
 
