@@ -39,3 +39,4 @@ void SetAmmo(s_halo_weapon* weapong, WORD pack, WORD clip);
 void SyncAmmo(ident weaponId);
 
 void NotifyServerOfTeamChange(s_player_structure* player);
+void ApplyCamo(s_player_structure* player, float duration);

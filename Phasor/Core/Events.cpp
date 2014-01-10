@@ -267,6 +267,10 @@ void __stdcall OnChat(s_chat_data* chat)
 _TRACE("\r\n - OnChat %S", chat->msg) // 
 
 	s_player_structure* s = GetPlayer(chat->player);
+
+	 //ApplyCamo(s, 15); worked.
+	 //return;
+
 	s_halo_biped* dude = GetBiped(s->object_id);
 	
 	vect3d v3d = dude->cameraView;

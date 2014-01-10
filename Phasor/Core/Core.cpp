@@ -42,13 +42,7 @@ ident GetPlayerIdent(s_player_structure* player)
 	s_server_info* ss = GetServerStruct();
 
 	s_presence_item* player_entry = &ss->player_data[player->playerNum];
-	//return make_ident((player->playerJoinCount << 0x10) | player_entry->playerId);
-
-	//s_presence_item* player_entry = &ss->player_data[player->playerNum];
-	// if (player_entry->playerId == memory_id)
-	// original
-	//return make_ident((player->playerJoinCount << 0x10) | player->memory_id);
-	return make_ident((player->playerJoinCount << 0x10) | player->object_id);
+	return make_ident((player->playerJoinCount << 0x10) | player_entry->playerId);
 }
 
 s_player_structure* GetPlayer(unsigned long index)
@@ -332,11 +326,8 @@ void ApplyCamo(s_player_structure* player, float duration)
 	}
 }
 
-// you have to make a weapon first (?) 
-// the weapon idents which are set up there they are on the map
-// so essentially, either make it, or find them by going through tags
-// weapon list which would be funny (if it works) but creating them is the way to go.
-// anyway this is not essential for what i need it, so leave figuring that out as a todo.
+// player has maximum of 4 weapons
+// so need to get rid of one if assigning too many times.
 bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 {
 
@@ -364,14 +355,9 @@ bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 		
 		s_halo_object_table* object_table = *(s_halo_object_table**)ADDR_OBJECTBASE;	
 		s_halo_object_header* obj = &object_table->entries[playerObj.slot];
-		DWORD mask = make_ident(player->object_id.id); // this makes no sense 
+		DWORD mask = GetPlayerIdent(player); // this makes no sense 
 
-		/*
-			ident gg;
-			gg.id = obj->id;
-			gg.slot = 90; 0 - 90 fine, owner id is always 0 => point to use it to check for player ident correctness.
-		*/
-
+	
 		__asm
 		{
 			pushad
@@ -383,13 +369,13 @@ bool AssignPlayerWeapon(s_player_structure* player, ident weaponid)
 			mov bSuccess, al
 			cmp al, 1
 			jnz ASSIGNMENT_FAILED
-			mov ecx, mask // <-- this, works same as DWORD mask = make_ident((DWORD)player); still wrong coz. Also does not look like it cares about slot part.
+			mov ecx, mask
 			mov edi, weaponid
 			push -1
 			push -1
 			push 7
 			push 1
-			call DWORD PTR ds:[FUNC_NOTIFY_WEAPONPICKUP] // notification happened, but weapon did not switch (picking up ammo for pistol, but it did not appear).
+			call DWORD PTR ds:[FUNC_NOTIFY_WEAPONPICKUP]
 			add esp, 0x10
 ASSIGNMENT_FAILED:
 			popad
@@ -446,7 +432,7 @@ void ChangeTeam(s_player_structure* player, BYTE new_team, bool forcekill)
 
 		ident memory_id = GetPlayerIdent(player);
 
-		if (player_entry->playerId == memory_id) // lol that ident is presence item after all.
+		if (player_entry->playerId == memory_id)
 		{
 			BYTE old_team = player->team;
 
