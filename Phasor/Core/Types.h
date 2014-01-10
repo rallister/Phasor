@@ -394,6 +394,13 @@ enum e_command_result
 		vect3d dir;
 	};
 
+	struct s_player_info
+	{
+		BYTE	machineIndex;
+		BYTE	unknown;
+		BYTE	yeam;
+		BYTE	playerIndex;
+	};
 
 	#pragma pack(push, 1)
 	
@@ -467,26 +474,26 @@ enum e_command_result
 	#pragma pack(push, 1)
 	struct s_player_structure
 	{
-		WORD playerJoinCount; // 0x0000
-		WORD localClient; // 0x0002 always FF FF on a dedi in Halo is 00 00 if its your player
-		wchar_t playerName[12]; //0x0004
-		UNKNOWN(4); // 0x001C only seen FF FF FF FF
-		BYTE team; // 0x0020
-		UNKNOWN(3); // padding?
-		ident m_interactionObject; // 0x0024 ie Press E to enter THIS vehicle
-		WORD interactionType; // 0x0028 8 for vehicle, 7 for weapon
-		WORD interactionSpecifier; // 0x002A which seat of car etc
-		DWORD respawnTimer; // 0x002c
-		UNKNOWN(4); // 0x0030 only seen empty
-		ident object_id; // 0x0034
-		ident old_object_id; // 0x0038
-		UNKNOWN(4); // 0x003C sometimes changes as you move, fuck idk
-		UNKNOWN(4); // 0x0040 always FF FF FF FF, never accessed
+		WORD playerJoinCount;					// 0x0000
+		WORD localClient;						// 0x0002 always FF FF on a dedi in Halo is 00 00 if its your player
+		wchar_t playerName[12];					// 0x0004
+		UNKNOWN(4);								// 0x001C only seen FF FF FF FF
+		BYTE team;								// 0x0020
+		UNKNOWN(3);								// padding?
+		ident m_interactionObject;				// 0x0024 ie Press E to enter THIS vehicle
+		WORD interactionType;					// 0x0028 8 for vehicle, 7 for weapon
+		WORD interactionSpecifier;				// 0x002A which seat of car etc
+		DWORD respawnTimer;						// 0x002c
+		UNKNOWN(4);								// 0x0030 only seen empty
+		ident object_id;						// 0x0034
+		ident old_object_id;					// 0x0038
+		UNKNOWN(4);								// 0x003C sometimes changes as you move, fuck idk
+		UNKNOWN(4);								// 0x0040 always FF FF FF FF, never accessed
 		UNKNOWN(4); // 0x0044 changes when the player shoots
 		wchar_t playerNameAgain[12]; // 0x0048
-		WORD playerNum_NotUsed; // 0x0060 seems to be the player number.. never seen it accessed tho
-		WORD empty1; // 0x0062 byte alignment
-		BYTE playerNum; // 0x0064 player number used for rcon etc (ofc this is 0 based tho)
+		WORD playerNum_NotUsed;					// 0x0060 seems to be the player number.. never seen it accessed tho
+		WORD empty1;							// 0x0062 byte alignment
+		BYTE playerNum;							// 0x0064 player number used for rcon etc (ofc this is 0 based tho)
 		BYTE unk_PlayerNumberHigh; // 0x0065 just a guess
 		BYTE team_Again; // 0x0066
 		UNKNOWN(5);
