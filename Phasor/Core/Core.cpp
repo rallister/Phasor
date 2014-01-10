@@ -742,6 +742,7 @@ e_command_result setVersionCheck(bool enabled)
 bool setVersionServer(DWORD versionid)
 {
 	WriteBytes(PATCH_CURRENTVERSION, &versionid, 4);
+	return true;
 }
 
 bool setVersionBroadcast(char* version)

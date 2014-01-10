@@ -38,3 +38,4 @@ bool FindIntersection(const view_vector& view, const ident& ignore_obj,vect3d& h
 void SetAmmo(s_halo_weapon* weapong, WORD pack, WORD clip);
 void SyncAmmo(ident weaponId);
 
+void NotifyServerOfTeamChange(s_player_structure* player);
