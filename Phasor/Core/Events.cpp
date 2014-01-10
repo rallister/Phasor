@@ -16,7 +16,29 @@ void __stdcall OnMachineDisconnect(DWORD machineIndex)
 
 void __stdcall OnMachineInfoFix(s_machinfo_info_partial_packet* data)
 {
+	data->clientKey[8] = '\0';
+	data->name[11] = L'\0';
+
+	/*
+		// now let scripts change the player's name
+		std::string hash(data->hash, 32);
+		std::string name = NarrowString(data->name);
+		std::string new_name;	
+
+		if (new_name.size()) 
+		{
+			std::wstring wname = WidenString(new_name).substr(0, 11);
+			wcscpy_s(data->name, 12, wname.c_str());
+		} 
+		else 
+		if (!allow_name) 
+		{
+			data->name[0] = L'\0';
+		}
+	*/
+
 	_TRACE("\r\n - OnMachineInfoFix") 
+
 }
 
 void __stdcall ConsoleHandler(DWORD fdwCtrlType)
@@ -34,6 +56,9 @@ void __stdcall OnConsoleProcessing()
 
 void __stdcall OnClientUpdate(s_player_structure* m_player)
 {
+	// this was used to keep track of whether person is afk or not
+	// adapted (also another call was onchat
+
 	//s_halo_biped* object =  (s_halo_biped*)GetObjectAddress(m_player->object_id);
 	//if (object)	{
 	//	

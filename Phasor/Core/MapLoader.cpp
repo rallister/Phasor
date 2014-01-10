@@ -383,8 +383,7 @@ MAP_NOT_FOUND:
 			{ 
 
 				_TRACE_DEBUG_CANT_READ_GAMETYPE(gametype)
-				// dodgy, this stream is passed around, just to read err message from it, no thanks.
-				/// stream << L"Cannot read gametype data for '" << gametype << L"'" << endl;
+				
 				return false; 
 			}
 

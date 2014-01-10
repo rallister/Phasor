@@ -306,6 +306,32 @@ bool CreateObject(ident mapid, ident parentId, int respawnTime, bool bRecycle, v
 	return true;
 }
 
+
+// best method to check that ident is working.
+void ApplyCamo(s_player_structure* player, float duration)
+{
+	
+	ident playerObj = player->object_id;
+	// DWORD mask = make_ident(player->object_id.id); // this makes no sense but appeared closest to result
+	DWORD mask = GetPlayerIdent(player);
+
+	DWORD count = 0x8000; // count >= 0x8000 == infinite
+
+	if (duration != 0)
+		count = (DWORD)(duration * 30); // 30 ticks per second
+
+	// Make the player invisible
+	__asm
+	{
+		mov eax, playerObj
+		mov ebx, mask
+		push count
+		push 0
+		call dword ptr ds:[FUNC_DOINVIS]
+		add esp, 8
+	}
+}
+
 // you have to make a weapon first (?) 
 // the weapon idents which are set up there they are on the map
 // so essentially, either make it, or find them by going through tags
@@ -376,6 +402,81 @@ ASSIGNMENT_FAILED:
 		
 
 	return bSuccess;
+}
+
+void Kill(s_player_structure* player)
+{
+	//sv_killed = true; // used later for detecting what killed the player
+	
+	if (player->object_id.valid()) {
+		DWORD mask = GetPlayerIdent(player);
+		DWORD playerObj = player->object_id; // it's an ident above inother functions.
+		__asm
+		{
+			pushad
+
+			PUSH 0
+			PUSH -1
+			PUSH -1
+			PUSH -1
+			MOV EAX,playerObj
+			call DWORD PTR ds:[FUNC_ONPLAYERDEATH]
+			add esp, 0x10
+			mov eax, playerObj
+			call DWORD PTR ds:[FUNC_ACTIONDEATH_1]
+			mov eax, mask
+			call DWORD PTR ds:[FUNC_ACTIONDEATH_2]
+			push mask
+			call DWORD PTR ds:[FUNC_ACTIONDEATH_3]
+			add esp, 4
+
+			popad
+		}
+	}
+
+	//sv_killed = false;
+}
+
+void ChangeTeam(s_player_structure* player, BYTE new_team, bool forcekill)
+{	
+	s_server_info* server_info = GetServerStruct();
+
+	for (int i = 0; i < 16; i++) {
+		s_presence_item* player_entry = &server_info->player_data[i];
+
+		ident memory_id = GetPlayerIdent(player);
+
+		if (player_entry->playerId == memory_id) // lol that ident is presence item after all.
+		{
+			BYTE old_team = player->team;
+
+			// update teams in memory
+			player->team = new_team;
+			player->team_Again = new_team;
+			player_entry->team = new_team;
+
+			if (forcekill) 
+				Kill(player);
+
+			NotifyServerOfTeamChange(player);
+				
+			// scripting::events::OnTeamChange(*this, false, old_team, new_team);
+			break;
+		}
+	}
+}
+
+void NotifyServerOfTeamChange(s_player_structure* player)
+{
+	// build the packet that notifies the server of the team change
+	ident memory_id = GetPlayerIdent(player);
+	BYTE d[4] = {(BYTE)memory_id, (BYTE)player->team, 0x18, 0};
+
+	// Gotta pass a pointer to the data
+	DWORD d_ptr = (DWORD)&d;
+	BYTE buffer[8192];
+	DWORD retval = BuildPacket(buffer, 0, 0x1A, 0, (LPBYTE)&d_ptr, 0, 1, 0);
+	AddPacketToGlobalQueue(buffer, retval, 1, 1, 0, 1, 3);
 }
 
 // Forces a player into a vehicle
@@ -589,4 +690,130 @@ bool ApplyDamage(ident receiver, ident causer, float dmg, int flags)
 	ApplyDamage(receiver, causer, *dmg_tag, dmg, flags);
 	return true;
 }
+
+
+//============================= version related==================================
+/* this will not be here, just for reference.
+
+	static const std::map<std::string, versionInfo> versionList = []() -> std::map<std::string, versionInfo>
+	{
+		std::map<std::string, halo::server::misc::versionInfo> versions;
+#ifdef PHASOR_PC
+		versions["100"] = ("01.00.00.0564", 0x00006);
+		versions["101"] = ("01.00.01.0580", 0x8d9a0);
+		versions["102"] = ("01.00.02.0581", 0x8dd88);
+		versions["103"] = ("01.00.03.0605", 0x93b48);
+		versions["104"] = ("01.00.04.0607", 0x94318);
+		versions["105"] = (01.00.05.0610", 0x956a0);
+		versions["106"] = (01.00.06.0612", 0x956a0);
+		versions["107"] = ("01.00.07.0613", 0x956a0);
+		versions["108"] = ("01.00.08.0616", 0x96640);
+		versions["109"] = ("01.00.09.0620", 0x96640);
+#else
+		versions["100"] = ("01.00.00.0609", 0x94ecf);
+		versions["107"] = ("01.00.07.0613", 0x5bc42f);
+		versions["108"] = ("01.00.08.0616", 0x5bcfe7);
+		versions["109"] = ("01.00.09.0620", 0x96a27);
+	
+#endif
+		return versions;
+	}();
+*/
+
+e_command_result setVersionCheck(bool enabled)
+{
+		
+	if (enabled) 
+	{
+		BYTE jmp[] = {0xEB};
+		WriteBytes(PATCH_ANYVERSIONCHECK1, &jmp, sizeof(jmp));
+		WriteBytes(PATCH_ANYVERSIONCHECK2, &jmp, sizeof(jmp));		
+	} 
+	else
+	{
+		BYTE jge[] = {0x7D}, jle[] = {0x7e};
+		WriteBytes(PATCH_ANYVERSIONCHECK1, &jge, sizeof(jge));
+		WriteBytes(PATCH_ANYVERSIONCHECK2, &jle, sizeof(jle));
+	}
+		
+	return kProcessed;
+}
+
+bool setVersionServer(DWORD versionid)
+{
+	WriteBytes(PATCH_CURRENTVERSION, &versionid, 4);
+}
+
+bool setVersionBroadcast(char* version)
+{
+	char* halo_version = (char*)ADDR_BROADCASTVERSION;	
+	WriteString(ADDR_BROADCASTVERSION, version);
+	return true;
+}
+
+//====================================== accessign console ============================================
+#ifdef PHASOR_PC
+	const std::wstring MSG_PREFIX = L"** SERVER ** ";
+#elif PHASOR_CE
+	const std::wstring MSG_PREFIX;
+#endif
+
+// this will most certainly not be necessary keepin it for reference.
+bool WriteToConsole(const std::wstring& str)// str usually has endl appended
+{
+	if (str.size() == 0) return true;
+		
+	bool ready = *(bool*)UlongToPtr(ADDR_CONSOLEREADY);
+
+	if (!ready) 
+	{		
+		return true;
+	}
+
+	// Prepare for writing the string
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD written = 0;
+
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	SHORT oldX = 0; // used to set cursor back to old position
+
+	// Get current console position info
+	GetConsoleScreenBufferInfo(hConsole, &info);
+	oldX = info.dwCursorPosition.X;
+
+	// Set cursor to start of the last row (where we want to start writing)
+	info.dwCursorPosition.X = 0;
+	info.dwCursorPosition.Y = 299;
+	SetConsoleCursorPosition(hConsole, info.dwCursorPosition);
+
+	FillConsoleOutputCharacterA(hConsole, ' ', 95, info.dwCursorPosition, &written);
+	FillConsoleOutputAttribute(hConsole, 7, 95, info.dwCursorPosition, &written);
+
+	// Write the text
+	WriteConsoleW(hConsole, str.c_str(), str.size(), &written, NULL);
+	//WriteConsoleW(hConsole, L"\n", 1, &written, NULL);
+
+	// Get the current text in the console
+	LPBYTE ptr = (LPBYTE)ADDR_CONSOLEINFO;
+
+	if (*ptr != 0) {
+		// Build current command input
+		std::string formatted = "halo( ";
+
+		formatted += (char*)UlongToPtr(*(DWORD*)ptr + OFFSET_CONSOLETEXT); // current text
+
+		// Rewrite the data to console
+		GetConsoleScreenBufferInfo(hConsole, &info);
+		FillConsoleOutputCharacterA(hConsole, ' ', 95, info.dwCursorPosition, &written);
+		WriteConsoleOutputCharacterA(hConsole, formatted.c_str(), formatted.size(), info.dwCursorPosition, &written);
+
+		// Set the cursor to its old position
+		GetConsoleScreenBufferInfo(hConsole, &info);
+		info.dwCursorPosition.X = oldX;
+		SetConsoleCursorPosition(hConsole, info.dwCursorPosition);
+	}
+	return true;
+}
+
+//========================================================================================
 
