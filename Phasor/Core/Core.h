@@ -1,7 +1,7 @@
 #pragma once
 
 
-
+#include "../Common/MyString.h"
 #include "Addresses.h"
 #include "Types.h"
 #include "Packet.h"
@@ -40,3 +40,4 @@ void SyncAmmo(ident weaponId);
 
 void NotifyServerOfTeamChange(s_player_structure* player);
 void ApplyCamo(s_player_structure* player, float duration);
+s_player_structure* GetPlayerExecutingCommand();

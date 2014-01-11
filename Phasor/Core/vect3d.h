@@ -2,14 +2,6 @@
 
 #pragma pack(push, 1)
 
-// unions don't like structs with assignment operators
-/*struct _vect3d
-{
-	float x;
-	float y;
-	float z;
-};*/
-
 struct vect3d
 {
 	float x;

@@ -5,7 +5,7 @@
 void __stdcall OnMachineConnect(DWORD machineIndex)
 {
 	s_server_info* ss = GetServerStruct();
-	
+	s_machine_info* machine = &ss->machine_table[machineIndex];
 	_TRACE("\r\n - OnMachineConnect %d", ss->cur_players) 
 }
 
@@ -95,12 +95,59 @@ e_command_result __stdcall ProcessCommand(char* input)
 	
 	}
 		return kGiveToHalo;
+
+	/*
+		// Make sure strings are null terminated
+		input->command[sizeof(input->command)-1] = 0;
+		input->password[sizeof(input->password)-1] = 0;
+
+		if (input->command[0] == 0) return; // empty command
+
+		const char* password = (const char*)ADDR_RCONPASSWORD;
+		bool bCorrect = !strcmp(password, input->password);
+
+		s_player* player = game::getPlayerFromRconId(playerNum);
+
+		// Asks scripts if we should allow it.
+		if (!bCorrect) 
+			bCorrect = scripting::events::OnServerCommandAttempt(*player, input->command, input->password);
+
+		if (bCorrect) {			
+			SetExecutingPlayer(player);
+			ExecuteServerCommand(input->command, player);
+			SetExecutingPlayer(NULL);
+		}
+	*/
 }
 
 void __stdcall ProcessCommandAttempt(s_command_input* input, int playerNum)
 {
 	// called by rcon from game.
+	/*
+		bool bMapUnchanged = true;
 
+		maploader::s_phasor_mapcycle_entry vote_decision;
+		if (mapvote::GetVoteDecision(vote_decision))
+		{
+			if (!maploader::ReplaceHaloMapEntry(loading_map, vote_decision))
+			{
+				_TRACE_MAP_IGNORED_DUE_TO_PREVIOUS_ERROR()
+			}
+		}
+
+		char* map = loading_map->map;
+		current_map = map;
+		char* gametype = loading_map->gametype;
+#ifdef PHASOR_PC		
+		maploader::OnMapLoad(map);
+		if (!maploader::GetBaseMapName(map, (const char**)&map)) {
+			*g_PhasorLog << "maploader : unable to determine base map for " 
+				<< map << endl;
+		}
+#endif
+
+		return bMapUnchanged;
+	*/
 	_TRACE("\r\n - ProcessCommandAttempt") 
 }
 
@@ -112,18 +159,58 @@ bool __stdcall OnMapLoad(s_mapcycle_entry* loading_map)
 
 void __stdcall OnHaloPrint(char* msg)
 {	
-	//todo: set up heart beat.
+	if(!*msg || *msg == 'U' || *msg == 'D') 
+			return;
+	s_player_structure* player = GetPlayerExecutingCommand();
+
 }
 
 bool __stdcall OnHaloBanCheck(char* hash, s_machine_info* machine)
 {	
+	/*
+			// fix an exploit where hashes can be uppercase (gamespy still validates
+		// them but they are treated as different by the server)
+		for (size_t i = 0; i < strlen(hash); i++)
+			if (hash[i] >= 'A' && hash[i] <= 'Z')
+				hash[i] += 32;
+		
+		std::string ip;
+		GetMachineIP(*machine, &ip, NULL);
+		
+		bool allow = scripting::events::OnBanCheck(hash, ip);
+	
+		if (!allow) 
+		{ 
+			_TRACE_PLAYER_REJECTED_BY_BAN_SCRIPT(hash, ip)	
+		}
+		return allow;
+	*/
+
 	_TRACE("\r\n - OnHaloBanCheck") 
 	return TRUE;
 }
 
 void __stdcall OnHashValidation(s_hash_validation* info, const char* status)
 {
-	info->status = 1;
+	/*
+		if (allow_invalid_hash && strcmp(status, "Invalid authentication") != 0) 
+			info->status = 1;
+
+		_TRACE_ON_HASH_VALIDATION(info)
+		if (info->status == 1) 
+		{
+			PhasorMachine* machine = FindMachineById(info->machineId);
+			machine->hash_validated = true;
+			
+			s_player* player = game::getPlayerFromHash(info->hash);
+			if (player) 
+				player->checkAndSetAdmin();
+		} 
+		else 
+		{			
+			_TRACE_ON_HASH_REJECTED(info->machineId, status)						
+		}
+	*/
 	_TRACE("\r\n - OnHashValidation %s ", status) 
 }
 
@@ -183,13 +270,22 @@ void __stdcall OnPlayerSpawnEnd(DWORD playerId, ident m_objectId)
 
 void __stdcall OnObjectCreation(ident m_objectId)
 {
-	_TRACE("\r\n - OnObjectCreation [%d,%d]", m_objectId.id, m_objectId.slot) 
+	s_halo_object* obj = (s_halo_object*)GetObjectAddress(m_objectId);
+	if(!obj)
+	{
+		_TRACE("\r\n - OnObjectCreationAttempt no weapong") // 
+	
+	}
+	_TRACE("\r\n - OnObjectCreation [%d,%d] at [%f,%f,%f]", m_objectId.id, m_objectId.slot, obj->location.x, obj->location.y, obj->location.z) 
 }
 
 bool __stdcall OnObjectCreationAttempt(s_object_creation_disposition* creation_info)
 {
+	_TRACE("\r\n OnObjectCreationAttempt - map_id[%d,%d], player_ident[%d,%d]\r\n", creation_info->map_id.id, creation_info->map_id.slot, creation_info->player_ident.id, creation_info->player_ident.slot)
+	
 
 	
+
 		// original code, checkd scripts for allow, then an alternative tag was returned so and based on that
 		// returned it.
 		// i dotn think i need to modify anything.
@@ -264,10 +360,12 @@ void __stdcall OnChat(s_chat_data* chat)
 
 	ProcessChat(chat);
 
-_TRACE("\r\n - OnChat %S", chat->msg) // 
+	
+	wstring msg = msg;
 
 	s_player_structure* s = GetPlayer(chat->player);
 
+	
 	 //ApplyCamo(s, 15); worked.
 	 //return;
 
@@ -278,8 +376,11 @@ _TRACE("\r\n - OnChat %S", chat->msg) //
 	s_tag_entry* tag;
 
 	size_t i = 0;	
-	tag = LookupTag2("weapons\\pistol\\pistolweap\\");
-
+	//tag = LookupTag2("weapons\\pistol\\pistolweap\\");
+	tag = LookupTag2(NarrowString(msg));
+	
+	if(!tag)
+		return;
 	tag = LookupTag(make_ident(tag->id));
 
 	DWORD parentId = 0;
@@ -291,14 +392,25 @@ _TRACE("\r\n - OnChat %S", chat->msg) //
 	
 	vect3d pos = dude->cameraView;
 
-	pos.x = pos.x++;
-	pos.y = pos.y++; //ReadNumber<float>(*args[i++]);
-	//pos.z = ReadNumber<float>(*args[i++]);
+	//69.406006,-107.047234,3.623303
+
+
+	pos.x = 69.406006;
+	pos.y = -107.047234; //ReadNumber<float>(*args[i++]);
+	pos.z = 3.623303;
 		
 	ident objid;
 	CreateObject(tag->id, make_ident(s->object_id), -1, 0, &pos, &objid);
-	AssignPlayerWeapon(s, objid);
-	
+	//AssignPlayerWeapon(s, objid);
+
+	s_halo_object* obj = (s_halo_object*)GetObjectAddress(objid);
+	if(!obj)
+	{
+		_TRACE("\r\n - OnChat no weapong") // 
+		return;
+	}
+
+	_TRACE("\r\n - OnChat %S", chat->msg) // 
 }
 
 bool __stdcall OnVehicleEntry(DWORD playerId)

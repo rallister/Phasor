@@ -69,6 +69,39 @@ s_player_structure* GetPlayerFromObjectId(ident id)
 	return NULL;
 }
 
+s_player_structure* GetPlayerExecutingCommand()
+{
+	DWORD execPlayerNumber = *(DWORD*)UlongToPtr(ADDR_RCONPLAYER);
+	return GetPlayer(execPlayerNumber);
+}
+
+void SetExecutingPlayer(s_player_structure* player)
+{
+	if (!player) 
+		*(DWORD*)UlongToPtr(ADDR_RCONPLAYER) = -1;
+	else 
+		*(DWORD*)UlongToPtr(ADDR_RCONPLAYER) = player->playerNum;
+}
+
+void ExecuteServerCommand(const std::string& command, s_player_structure* execute_as)
+	{
+		s_player_structure* old_exec_player = GetPlayerExecutingCommand();
+		SetExecutingPlayer(execute_as);
+
+		const char* cmd = command.c_str();
+		__asm
+		{
+			pushad
+			PUSH 0x2000
+			mov edi, cmd
+			call dword ptr ds: [FUNC_EXECUTESVCMD]
+			add esp, 4		
+			popad
+		}
+
+		SetExecutingPlayer(old_exec_player);
+	}
+
 bool DestroyObject(ident objid)
 {
 	if (!GetObjectAddress(objid)) 
@@ -452,6 +485,27 @@ void ChangeTeam(s_player_structure* player, BYTE new_team, bool forcekill)
 	}
 }
 
+bool ConsoleMessagePlayer(const s_player_structure* player, const std::wstring& str)
+{
+	if (str.size() >= 0x50) 
+		return false;
+
+	std::string str_narrow = NarrowString(str);
+
+	s_console_msg d(str_narrow.c_str());
+
+	BYTE buffer[8192]; 
+
+#ifdef PHASOR_PC
+	DWORD size = BuildPacket(buffer, 0, 0x37, 0, (LPBYTE)&d, 0,1,0);
+#elif  PHASOR_CE 
+	DWORD size = BuildPacket(buffer, 0, 0x38, 0, (LPBYTE)&d, 0,1,0);
+#endif
+	AddPacketToPlayerQueue(player->playerNum, buffer, size, 1,1,0,1,3);
+		
+	return true;
+}
+
 void NotifyServerOfTeamChange(s_player_structure* player)
 {
 	// build the packet that notifies the server of the team change
@@ -738,6 +792,43 @@ bool setVersionBroadcast(char* version)
 	return true;
 }
 
+bool GetMachineIP(s_machine_info& machine, std::string* ip, WORD* port)
+{
+	s_connection_info* con = machine.get_con_info();
+	if (!con) 
+		return false;
+	if (ip) 
+	{
+		BYTE* ip_data = con->ip;
+		*ip = m_sprintf("%d.%d.%d.%d", ip_data[0], ip_data[1], ip_data[2], ip_data[3]);
+	}
+
+	if (port) 
+		*port = con->port;
+
+	return true;
+}
+
+bool GetMachineHash(const s_machine_info& machine, std::string& hash)
+{
+	s_hash_list* hash_list = (s_hash_list*)ADDR_HASHLIST;
+
+	hash_list = hash_list->next;
+
+	while (hash_list && hash_list->data) 
+	{	
+		if (hash_list->data->id == machine.machineNum) 
+		{
+			hash = hash_list->data->hash;
+			return true;
+		}
+
+		hash_list = hash_list->next;
+	}
+	return false;
+}
+
+
 //====================================== accessign console ============================================
 #ifdef PHASOR_PC
 	const std::wstring MSG_PREFIX = L"** SERVER ** ";
@@ -802,5 +893,18 @@ bool WriteToConsole(const std::wstring& str)// str usually has endl appended
 	return true;
 }
 
+
 //========================================================================================
 
+/*	
+	// old code from Server to
+	// save the command for memory (arrow keys)
+	if (exec_player == NULL && result == kProcessed) 
+	{
+		
+		s_command_cache* cache = (s_command_cache*)ADDR_CMDCACHE;
+		cache->count = (cache->count + 1) % 8;
+		strcpy_s(cache->commands[cache->count], sizeof(cache->commands[cache->count]), cmd);
+		cache->cur = 0xFFFF;
+	}
+*/
