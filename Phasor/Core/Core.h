@@ -24,6 +24,8 @@ DWORD GetRespawnTicks();
 DWORD GetServerTicks();
 bool DestroyObject(ident objid);
 
+
+
 void ProcessChat(s_chat_data* chat);
 void DispatchChat(e_chat_types type,  const wchar_t* msg, s_player_structure* from, s_player_structure* to);
 

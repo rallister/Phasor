@@ -1,6 +1,6 @@
 #include "Addresses.h"
 #include "MemoryOperations.h"
-#include "Globals.h"
+
 #include "Events.h"
 
 // Server function codecaves

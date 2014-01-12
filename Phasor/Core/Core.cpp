@@ -1,5 +1,8 @@
 #include "Core.h"
 
+
+
+
 ident make_ident(unsigned long id) 
 {
 	ident out;

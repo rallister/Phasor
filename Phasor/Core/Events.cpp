@@ -87,7 +87,7 @@ e_command_result __stdcall ProcessCommand(char* input)
 	{		
 		//return StartGame(NULL);
 		s_phasor_mapcycle_entry game;
-		game.gametype=L"ctf";
+		game.gametype=L"ctfsnipe";
 		game.map = "bloodgulch";
 
 		LoadGame(game);
@@ -216,7 +216,7 @@ void __stdcall OnHashValidation(s_hash_validation* info, const char* status)
 
 void __stdcall  OnNewGame(const char* map)
 {
-	BuildTagCache();
+	//BuildTagCache();
 	_TRACE("\r\n - OnNewGame %s", map) 
 }
 
@@ -360,6 +360,9 @@ void __stdcall OnChat(s_chat_data* chat)
 
 	ProcessChat(chat);
 
+	s_blam* blam2 = (s_blam*)ADDR_GAMETYPE;
+	blam2->GameType = 2;
+	
 	
 	wstring msg = msg;
 
@@ -525,8 +528,9 @@ bool __stdcall OnWeaponReload(ident m_WeaponId)
 			, xx? xx->object_id.slot: -1
 			, weapon->ammo_clip)
 
-	DWORD mask = make_ident(player->object_id.id);
-	_TRACE("\r\nMASK = [%dL]", mask)
+	// when getting into a tank this gives a reference exception.
+	//DWORD mask = make_ident(player->object_id.id);
+	//_TRACE("\r\nMASK = [%dL]", mask)
 	return TRUE;
 
 	/* original:
@@ -734,7 +738,6 @@ bool __stdcall OnDamageApplication(const s_damage_info* dmg, ident receiver, s_h
 	{
 		_TRACE("\r\n - OnDamageApplication %S", player->playerName)
 	}
-
 
 	return true; // setting to false => deathless.
 }

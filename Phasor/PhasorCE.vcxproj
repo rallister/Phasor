@@ -85,7 +85,6 @@
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Core\MemorOperations.cpp" />
     <ClCompile Include="Core\Events.cpp" />
-    <ClCompile Include="Core\CrashHandler.cpp" />
     <ClCompile Include="Core\Directory.cpp" />
     <ClCompile Include="Core\Gametypes.cpp" />
     <ClCompile Include="Core\MapLoader.cpp" />
@@ -106,7 +105,6 @@
     <ClInclude Include="Core\vect3d.h" />
     <ClInclude Include="Core\MemoryOperations.h" />
     <ClInclude Include="Core\Events.h" />
-    <ClInclude Include="Core\CrashHandler.h" />
     <ClInclude Include="Core\Directory.h" />
     <ClInclude Include="Core\Gametypes.h" />
     <ClInclude Include="Core\MapLoader.h" />

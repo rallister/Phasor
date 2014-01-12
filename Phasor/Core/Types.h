@@ -11,9 +11,161 @@
 #define UNKNOWN(size) char STR_CAT_DELAYED(_unused_,__COUNTER__)[size]
 #define UNKNOWN_BITFIELD(size) char STR_CAT_DELAYED(_unusedbf_, __COUNTER__) : size
 
+///====================
+// Phasor types
+enum e_tag_types
+{
+	TAG_ACTV = 'actv',
+	TAG_ANT  = 'ant!',
+	TAG_ANTR = 'antr',
+	TAG_BIPD = 'bipd',
+	TAG_BTIM = 'bitm',
+	TAG_COLL = 'coll',
+	TAG_COLO = 'colo',
+	TAG_CONT = 'cont',
+	TAG_DECA = 'deca',
+	TAG_DELA = 'DeLa',
+	TAG_DEVC = 'devc',
+	TAG_EFFE = 'effe',
+	TAG_EQIP = 'eqip',
+	TAG_FLAG = 'flag',
+	TAG_FONT = 'font',
+	TAG_FOOT = 'foot',
+	TAG_GRHI = 'grhi',
+	TAG_HMT = 'hmt ',
+	TAG_HUD = 'hud#',
+	TAG_HUDG = 'hudg',
+	TAG_ITMC = 'itmc',
+	TAG_JPT = 'jpt!',
+	TAG_LENS = 'lens',
+	TAG_LIGH = 'ligh',
+	TAG_LSND = 'lsnd',
+	TAG_MATG = 'matg',
+	TAG_METR = 'metr',
+	TAG_MGS2 = 'mgs2',
+	TAG_MOD2 = 'mod2',
+	TAG_PART = 'part',
+	TAG_PCTL = 'pctl',
+	TAG_PHYS = 'phys',
+	TAG_PPHY = 'pphy',
+	TAG_PROJ = 'proj',
+	TAG_SBSP = 'sbsp',
+	TAG_SCEN = 'scen',
+	TAG_SCEX = 'scex',
+	TAG_SCHI = 'schi',
+	TAG_SCNR = 'scnr',
+	TAG_SENV = 'senv',
+	TAG_SGLA = 'sgla',
+	TAG_SKY = 'sky ',
+	TAG_SMET = 'smet',
+	TAG_SND = 'snd!',
+	TAG_SNDE = 'snde',
+	TAG_SOUL = 'Soul',
+	TAG_SPLA = 'spla',
+	TAG_SSCE = 'ssce',
+	TAG_STR = 'str#',
+	TAG_TAGC = 'tagc',
+	TAG_TRAK = 'trak',
+	TAG_UDLG = 'udlg',
+	TAG_UNHI = 'unhi',
+	TAG_USTR = 'ustr',
+	TAG_VEHI = 'vehi',
+	TAG_WEAP = 'weap',
+	TAG_WIND = 'wind',
+	TAG_WPHI = 'wphi'
+};
+
+
+enum e_command_result
+{
+	kGiveToHalo = 0,
+	kProcessed
+};
+
+enum e_chat_types
+{
+	// important: don't reorder!
+	kChatAll = 0,
+	kChatTeam,
+	kChatVehicle,
+	kChatServer, // phasor only
+	kChatPrivate, // phasor only
+};
+
 //------------------------------ combined definitions --------------------------------------
 
 #pragma pack(push, 1)
+
+struct s_blam
+{
+	wchar_t GameTypeName[24];	// Unicode
+	long GameType;				// 1 CTF, 2 Slayer, 3 Oddball, 4 KOTH, 5 Race
+	long TeamPlay;				// 0 Off, 1 On
+
+	ULONG PlayersOnRadar		:	1;
+	ULONG FriendIndicators	:	1;
+	ULONG InfiniteGrenades	:	1;
+	ULONG NoShields			:	1;
+	ULONG Invisible			:	1;
+	ULONG StartEquipment		:	1;	// 0 Generic, 1 Custom	
+	ULONG FriendsOnRadar		:	1;
+	ULONG BallIndicator		:	1;	
+
+	long Indicator;            // 0 Motion tracker, 1 Navpoints, 2 None
+	long OddManOut;            // 0 No, 1 Yes
+	long RespawnTimeGrowth;	// 0 Off, 30 units per second eg: 150(0x96) = 30*5 secs
+	long RespawnTime;
+	long SuicidePenalty;
+	long NumOfLives;			// 0 Unlimited, 1 1 life, 3 3 lives, 5 5 lives
+	float HealthPercent;         // 1.0f
+	long ScoreLimit;           // Captures for CTF, laps for RACE, kills for Slayer, minutes for King, etc
+	long WeaponSet;            // 0 Normal, 1 Pistols, 2 Rifles, 3 Plasma, 4 Sniper, 5 No sniping, 6 Rockets, 
+									// 7 Shotguns, 8 Shortrange, 9 Human, 10 Convenant, 11 Classic, 12 Heavy
+
+	/* Red Team Vehicle Settings */
+	ULONG RedCustom			:	4;
+	ULONG RedWarthog			:	3;
+	ULONG RedGhost			:	3;
+	ULONG RedScorpion		:	3;
+	ULONG RedRocketWarthog	:	3;
+	ULONG RedBanshee			:	3;
+	ULONG RedTurret			:	3;
+	ULONG RedZero			:	2;
+	ULONG RedUnused			:	8;
+
+	/* Blue Team Vehicle Settings */
+	ULONG BlueCustom			:	4;
+	ULONG BlueWarthog		:	3;
+	ULONG BlueGhost			:	3;
+	ULONG BlueScorpion		:	3;
+	ULONG BlueRocketWarthog	:	3;
+	ULONG BlueBanshee		:	3;
+	ULONG BlueTurret			:	3;
+	ULONG BlueZero			:	2;
+	ULONG BlueUnused			:	8;
+
+	long VehicleRespawnTime;
+
+	long FriendlyFire;			// 0 Off, 1 On
+	long TKPenalty;
+	long AutoTeamBalance;		// 0 Off, 1 On
+	long GameTimeLimit;
+	long TypeFlags;			// Moving hill 0 Off; 1 On (KOTH)
+									// Racetype 0 Normal; 1 Any order; 2 Rally (Race)
+									// Random start 0 No; 1 Yes (Oddball)
+	char TeamScoring;			// Team scoring 0 Minimum; 1 Maximum; 2 Sum (Race)
+									// Ballspeed 0 Slow; 1 Normal; 2 Fast (Oddball)
+	char AssaultTimeLimit;		// 0 Two flags
+	WORD Unused1;
+	long TraitWithBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
+	long TraitWithoutBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent
+	long BallType;             // 0 Normal, 1 Reverse Tag, 2 Juggernaut 
+	long BallCountSpawn;
+	BYTE One;                    // Always 1 ( 0 if custom )
+	char GameTypeNum;            // # of the game in the game list ( 0000 - for a custom game type )
+	WORD Unused2;
+	DWORD Checksum;
+};
 
 struct ident 
 {
@@ -633,69 +785,8 @@ struct s_player_table
 
 #pragma pack(pop)
 
-///====================
-// Phasor types
-enum e_tag_types
-{
-	TAG_ACTV = 'actv',
-	TAG_ANT  = 'ant!',
-	TAG_ANTR = 'antr',
-	TAG_BIPD = 'bipd',
-	TAG_BTIM = 'bitm',
-	TAG_COLL = 'coll',
-	TAG_COLO = 'colo',
-	TAG_CONT = 'cont',
-	TAG_DECA = 'deca',
-	TAG_DELA = 'DeLa',
-	TAG_DEVC = 'devc',
-	TAG_EFFE = 'effe',
-	TAG_EQIP = 'eqip',
-	TAG_FLAG = 'flag',
-	TAG_FONT = 'font',
-	TAG_FOOT = 'foot',
-	TAG_GRHI = 'grhi',
-	TAG_HMT = 'hmt ',
-	TAG_HUD = 'hud#',
-	TAG_HUDG = 'hudg',
-	TAG_ITMC = 'itmc',
-	TAG_JPT = 'jpt!',
-	TAG_LENS = 'lens',
-	TAG_LIGH = 'ligh',
-	TAG_LSND = 'lsnd',
-	TAG_MATG = 'matg',
-	TAG_METR = 'metr',
-	TAG_MGS2 = 'mgs2',
-	TAG_MOD2 = 'mod2',
-	TAG_PART = 'part',
-	TAG_PCTL = 'pctl',
-	TAG_PHYS = 'phys',
-	TAG_PPHY = 'pphy',
-	TAG_PROJ = 'proj',
-	TAG_SBSP = 'sbsp',
-	TAG_SCEN = 'scen',
-	TAG_SCEX = 'scex',
-	TAG_SCHI = 'schi',
-	TAG_SCNR = 'scnr',
-	TAG_SENV = 'senv',
-	TAG_SGLA = 'sgla',
-	TAG_SKY = 'sky ',
-	TAG_SMET = 'smet',
-	TAG_SND = 'snd!',
-	TAG_SNDE = 'snde',
-	TAG_SOUL = 'Soul',
-	TAG_SPLA = 'spla',
-	TAG_SSCE = 'ssce',
-	TAG_STR = 'str#',
-	TAG_TAGC = 'tagc',
-	TAG_TRAK = 'trak',
-	TAG_UDLG = 'udlg',
-	TAG_UNHI = 'unhi',
-	TAG_USTR = 'ustr',
-	TAG_VEHI = 'vehi',
-	TAG_WEAP = 'weap',
-	TAG_WIND = 'wind',
-	TAG_WPHI = 'wphi'
-};
+
+//==========================================
 
 struct DamageModifier 
 {
@@ -704,8 +795,7 @@ struct DamageModifier
 	s_damage_amount orig_dmg;
 	s_damage_tag* data;
 
-	explicit DamageModifier(s_tag_entry* tag)
-		: tag(tag), orig_tag(*tag)
+	explicit DamageModifier(s_tag_entry* tag) : tag(tag), orig_tag(*tag)
 	{
 		data = (s_damage_tag*)tag->metaData;
 		orig_dmg = data->amount;
@@ -716,21 +806,5 @@ struct DamageModifier
 		*tag = orig_tag;
 		data->amount = orig_dmg;
 	}
-};
-
-enum e_command_result
-{
-	kGiveToHalo = 0,
-	kProcessed
-};
-
-enum e_chat_types
-{
-	// important: don't reorder!
-	kChatAll = 0,
-	kChatTeam,
-	kChatVehicle,
-	kChatServer, // phasor only
-	kChatPrivate, // phasor only
 };
 

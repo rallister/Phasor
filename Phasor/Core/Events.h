@@ -127,5 +127,3 @@ bool __stdcall OnDamageApplication(const s_damage_info* dmg, ident receiver, s_h
 	*	\param m_player The memory address of the player who is updating.*/
 void __stdcall OnClientUpdate(s_player_structure* m_player);
 
-
-
