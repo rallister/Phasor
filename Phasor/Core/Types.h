@@ -193,10 +193,10 @@ struct s_blam
 	BYTE One;                    // Always 1 ( 0 if custom )
 	char GameTypeNum;            // # of the game in the game list ( 0000 - for a custom game type )
 	WORD Unused2;
-	//DWORD Checksum; with checksum the size if 0xDB or 220, the famebuffer is 216, so we'll just skip the checksum, it was working fine without it.
+	DWORD Checksum; //with checksum the size if 0xDB or 220, the famebuffer is 216, so we'll just skip the checksum, it was working fine without it.
 };
 
-static_assert(sizeof(s_blam) == 0xd8, "bad");
+static_assert(sizeof(s_blam) == 220, "bad");
 
 struct ident 
 {

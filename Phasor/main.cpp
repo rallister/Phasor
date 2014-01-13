@@ -33,7 +33,7 @@ void _DO_TRACE(const char *fmt, ...)
 	vprintf(fmt, args);
     vfprintf(_TRACE_FILE, fmt, args);
     va_end(args);
-	fflush(_TRACE_FILE);
+	//fflush(_TRACE_FILE);
 }
 //================================================================================
 
