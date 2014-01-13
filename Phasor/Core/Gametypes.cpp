@@ -242,7 +242,7 @@ using namespace std;
 
 		//*bv = 0;
 
-		FILE * ff = fopen("fuckin_ctf_blam.lst","w");
+		FILE * ff = fopen("ctf_blam.lst","w");
 
 		BYTE * blampr = (BYTE*)&blam;
 		for(int i = 0; i < sizeof(s_blam);i++)
