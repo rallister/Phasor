@@ -227,9 +227,9 @@ void __stdcall  OnGameEnd(DWORD mode)
 
 void __stdcall OnPlayerWelcome(DWORD playerId)
 {
-	s_server_info* ss = GetServerStruct();
+	//s_server_info* ss = GetServerStruct();
 	
-	_TRACE("\r\n - OnPlayerWelcome %S", ss->player_data[playerId].name) 
+	//_TRACE("\r\n - OnPlayerWelcome %S", ss->player_data[playerId].name) 
 }
 
 void __stdcall OnPlayerQuit(DWORD playerId)

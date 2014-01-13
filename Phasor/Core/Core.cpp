@@ -718,7 +718,6 @@ bool ApplyDamage(ident receiver, ident causer, float dmg, int flags)
 			
 		s_server_info* info = GetServerStruct();
 		
-		_TRACE_DEBUG_APPLYING_VEHICLE_DAMAGE_NO_VEHICLE_HIT(info->map_name)
 		return false;
 	}
 

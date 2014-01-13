@@ -382,8 +382,6 @@ MAP_NOT_FOUND:
 			if (!ReadGametypeData(gametype, entry.gametype_data, sizeof(entry.gametype_data)))
 			{ 
 
-				_TRACE_DEBUG_CANT_READ_GAMETYPE(gametype)
-				
 				return false; 
 			}
 
@@ -403,22 +401,7 @@ MAP_NOT_FOUND:
 				strcpy_s(entry.gametype, len, n_gametype.c_str());
 			}
 
-			if (scripts.size() > 0) {
-				DWORD size = sizeof(s_script_list);
-				
-				entry.scripts = (s_script_list*)GlobalAlloc(GMEM_FIXED, size);
-				entry.scripts->count = scripts.size();
-				entry.scripts->script_names = (char**)GlobalAlloc(GMEM_FIXED, sizeof(entry.scripts->script_names[0])*scripts.size());
-
-				// Populate the script data
-				for (size_t x = 0; x < scripts.size(); x++)
-				{
-					entry.scripts->script_names[x] = (char*)GlobalAlloc(GMEM_FIXED, scripts[x].size() + 1);
-					strcpy_s(entry.scripts->script_names[x], scripts[x].size() + 1, scripts[x].c_str());
-				}
-
-			} 
-			else entry.scripts = NULL;
+			entry.scripts = NULL;
 
 			return true;
 		}
@@ -618,95 +601,6 @@ MAP_NOT_FOUND:
 		return kProcessed;
 	}
 
-	// e_command_result sv_mapcycle_add(void*,	commands::CArgParser& args, COutStream& out)
-	//{
-	//	s_phasor_mapcycle_entry entry;
-	//	if (!ReadGameDataFromUser(entry, args, out)) 
-	//		return e_command_result::kProcessed;
-
-	//	// If we're in the mapcycle add the data to the current playlist
-	//	if (in_mapcycle) 
-	//	{
-	//		if (!cycle_loader->GetActive().AddGame(entry, out)) 
-	//		{
-	//			out << L"Cannot write addition to current cycle. Addition ignored."
-	//				<< endl;
-
-	//			return e_command_result::kProcessed;
-	//		}
-	//	}
-
-	//	mapcycleList.push_back(entry);
-
-	//	out << entry.map << " (game: '" << entry.gametype << "') has been added to the mapcycle." << endl;				
-
-	//	return e_command_result::kProcessed;
-	//}
-
-	//e_command_result sv_mapcycle_del(void* exec_player, 
-	//	commands::CArgParser& args, COutStream& out)
-	//{
-	//	unsigned int index = args.ReadUInt();
-	//	if (index < 0 || index >= mapcycleList.size()) {
-	//		out << L"You entered an invalid index, see sv_mapcycle." << endl;
-	//		return e_command_result::kProcessed;
-	//	}
-
-	//	mapcycleList.erase(mapcycleList.begin() + index);
-	
-	//	if (in_mapcycle)
-	//		cycle_loader->GetActive().DeleteGame(index);
-
-	//	// Display cycle as it is now
-	//	return sv_mapcycle(exec_player, args, out);
-	
-	//}
-
-	//e_command_result sv_mapcycle(void*, commands::CArgParser& args, COutStream& out)
-	//{
-	//	out.wprint(L"   %-20s%-20s%s", L"Map", L"Variant", L"Script(s)");
-	
-	//	const wchar_t* fmt = L"%-3i%-20s%-20s%s";
-	
-	//	for (size_t x = 0; x < mapcycleList.size(); x++)
-	//	{
-	//		s_phasor_mapcycle_entry& entry = mapcycleList[x];
-	
-	//		std::string scripts_desc;
-	
-	//		for (size_t i = 0; i < entry.scripts.size(); i++) {
-	//			if (i != 0) scripts_desc += ",";
-	//			scripts_desc += entry.scripts[i].c_str();
-	//		}			
-	
-	//		std::wstring scripts_desc_w = WidenString(scripts_desc);
-	
-	//		if (!scripts_desc_w.size()) 
-	//			scripts_desc_w = L"<no scripts>";
-	//		std::wstring map_w = WidenString(entry.map);
-	//		out.wprint(fmt, x, map_w.c_str(), entry.gametype.c_str(), 
-	//			scripts_desc_w.c_str());
-	//	}
-
-	//	return kProcessed;
-	//}
-
-	//e_command_result sv_map(void*, commands::CArgParser& args, COutStream& out)
-	//{
-	//	s_phasor_mapcycle_entry entry;
-	//
-	//	if (!ReadGameDataFromUser(entry, args, out)) 
-	//		return kProcessed;
-	//
-	//	LoadGame(entry, out);
-	//	return kProcessed;
-	//}
-
-	//e_command_result sv_end_game(void*, commands::CArgParser&, COutStream&)
-	//{
-	//	in_mapcycle = false;
-	//	return kGiveToHalo;
-	//}
 
 	// --------------------------------------------------------------------
 	// Initialize the system

@@ -96,6 +96,32 @@ enum e_chat_types
 
 #pragma pack(push, 1)
 
+enum e_gametypes
+{
+	GAMETYPE_CTF = 1,
+	GAMETYPE_SLAYER,
+	GAMETYPE_ODDBALL,
+	GAMETYPE_KOTH,
+	GAMETYPE_RACE
+};
+
+enum e_weaponset
+{
+	WEAPONSET_NORMAL,
+	WEAPONSET_PISTOLS,
+	WEAPONSET_RIFLES, 
+	WEAPONSET_PLASMA, 
+	WEAPONSET_SNIPE, 
+	WEAPONSET_NOSNIPE, 
+	WEAPONSET_ROCKETS,
+	WEAPONSET_SHOTGUNS, 
+	WEAPONSET_SHORTRANGE,
+	WEAPONSET_HUMAN, 
+	WEAPONSET_CONVENANT,
+	WEAPONSET_CLASSIC, 
+	WEAPONSET_HEAVY
+};
+
 struct s_blam
 {
 	wchar_t GameTypeName[24];	// Unicode
@@ -117,32 +143,31 @@ struct s_blam
 	long RespawnTime;
 	long SuicidePenalty;
 	long NumOfLives;			// 0 Unlimited, 1 1 life, 3 3 lives, 5 5 lives
-	float HealthPercent;         // 1.0f
+	float HealthPercent;         // max 4.0 = 400%, at 0.0 says 400% but die like no health left (even with overshield)
 	long ScoreLimit;           // Captures for CTF, laps for RACE, kills for Slayer, minutes for King, etc
-	long WeaponSet;            // 0 Normal, 1 Pistols, 2 Rifles, 3 Plasma, 4 Sniper, 5 No sniping, 6 Rockets, 
-									// 7 Shotguns, 8 Shortrange, 9 Human, 10 Convenant, 11 Classic, 12 Heavy
+	long WeaponSet;            // 0 Normal, 1 Pistols, 2 Rifles, 3 Plasma, 4 Sniper, 5 No sniping, 6 Rockets, 7 Shotguns, 8 Shortrange, 9 Human, 10 Convenant, 11 Classic, 12 Heavy
 
 	/* Red Team Vehicle Settings */
-	ULONG RedCustom			:	4;
-	ULONG RedWarthog			:	3;
+	ULONG RedCustom			:	4; // 8 or 1000b => custom
+	ULONG RedWarthog		:	3;
 	ULONG RedGhost			:	3;
 	ULONG RedScorpion		:	3;
 	ULONG RedRocketWarthog	:	3;
-	ULONG RedBanshee			:	3;
+	ULONG RedBanshee		:	3;
 	ULONG RedTurret			:	3;
 	ULONG RedZero			:	2;
 	ULONG RedUnused			:	8;
 
 	/* Blue Team Vehicle Settings */
-	ULONG BlueCustom			:	4;
+	ULONG BlueCustom		:	4; // 8 or 1000b => custom
 	ULONG BlueWarthog		:	3;
 	ULONG BlueGhost			:	3;
 	ULONG BlueScorpion		:	3;
 	ULONG BlueRocketWarthog	:	3;
 	ULONG BlueBanshee		:	3;
-	ULONG BlueTurret			:	3;
+	ULONG BlueTurret		:	3;
 	ULONG BlueZero			:	2;
-	ULONG BlueUnused			:	8;
+	ULONG BlueUnused		:	8;
 
 	long VehicleRespawnTime;
 
@@ -150,22 +175,28 @@ struct s_blam
 	long TKPenalty;
 	long AutoTeamBalance;		// 0 Off, 1 On
 	long GameTimeLimit;
-	long TypeFlags;			// Moving hill 0 Off; 1 On (KOTH)
-									// Racetype 0 Normal; 1 Any order; 2 Rally (Race)
-									// Random start 0 No; 1 Yes (Oddball)
-	char TeamScoring;			// Team scoring 0 Minimum; 1 Maximum; 2 Sum (Race)
-									// Ballspeed 0 Slow; 1 Normal; 2 Fast (Oddball)
+
+#ifdef PHASOR_CE
+	UNKNOWN(0x20); // need to do it at runtime not compile time.
+#endif 
+	long TypeFlags;			// Moving hill 0 Off; 1 On (KOTH) Racetype 0 Normal; 1 Any order; 2 Rally (Race) Random start 0 No; 1 Yes (Oddball)
+	char TeamScoring;			// Team scoring 0 Minimum; 1 Maximum; 2 Sum (Race) Ballspeed 0 Slow; 1 Normal; 2 Fast (Oddball)
 	char AssaultTimeLimit;		// 0 Two flags
 	WORD Unused1;
 	long TraitWithBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
 	long TraitWithoutBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent
 	long BallType;             // 0 Normal, 1 Reverse Tag, 2 Juggernaut 
-	long BallCountSpawn;
+	long BallCountSpawn;		// 0 = 1, 1 = 2, etc.
+#ifdef PHASOR_CE
+	UNKNOWN(0x20);
+#endif
 	BYTE One;                    // Always 1 ( 0 if custom )
 	char GameTypeNum;            // # of the game in the game list ( 0000 - for a custom game type )
 	WORD Unused2;
-	DWORD Checksum;
+	//DWORD Checksum; with checksum the size if 0xDB or 220, the famebuffer is 216, so we'll just skip the checksum, it was working fine without it.
 };
+
+static_assert(sizeof(s_blam) == 0xd8, "bad");
 
 struct ident 
 {
