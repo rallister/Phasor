@@ -402,6 +402,8 @@ struct s_mapcycle_entry
 static_assert(sizeof(s_mapcycle_entry) == CONST_MENTRY_SIZE, 
 	"sizeof(s_mapcycle_entry) != CONST_MENTRY_SIZE");
 
+
+
 struct s_mapcycle_header
 {
 	s_mapcycle_entry* games;

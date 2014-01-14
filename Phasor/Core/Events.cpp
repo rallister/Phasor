@@ -86,11 +86,12 @@ e_command_result __stdcall ProcessCommand(char* input)
 	if(stricmp(input, "sv_mapcycle_begin") == 0)
 	{		
 		//return StartGame(NULL);
-		s_phasor_mapcycle_entry game;
-		game.gametype=L"ctfsnipe";
-		game.map = "bloodgulch";
+		//s_phasor_mapcycle_entry game;
+		//game.gametype=L"ctfsnipe";
+		//game.map = "bloodgulch";
 
-		LoadGame(game);
+		//LoadGame(game);
+		StartNextGame();
 		return kProcessed;
 	
 	}
@@ -222,7 +223,8 @@ void __stdcall  OnNewGame(const char* map)
 
 void __stdcall  OnGameEnd(DWORD mode)
 {
-	_TRACE("\r\n - OnGameEnd %8x", mode) 
+	_TRACE("\r\n - OnGameEnd %8x", mode);
+	StartNextGame();
 }
 
 void __stdcall OnPlayerWelcome(DWORD playerId)

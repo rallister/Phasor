@@ -2,10 +2,10 @@
 
 #include "MemoryOperations.h"
 #include "Globals.h"
-#include "MapLoader.h"
+
 #include "tags.h"
 #include "Core.h"
-
+#include "Game.h"
 #include "Addresses.h"
 #include "Types.h"
 

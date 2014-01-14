@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define MAX_GAMETYPE_NAME_LEN 46
+
 s_halo_biped* GetBiped(ident objectId);
 void* GetObjectAddress(ident objectId);
 s_server_info* GetServerStruct();
@@ -43,3 +45,5 @@ void SyncAmmo(ident weaponId);
 void NotifyServerOfTeamChange(s_player_structure* player);
 void ApplyCamo(s_player_structure* player, float duration);
 s_player_structure* GetPlayerExecutingCommand();
+void StartGame(const char* map);
+bool IsValidMap(const char* map);
