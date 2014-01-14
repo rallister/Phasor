@@ -18,14 +18,59 @@ s_blam* config_ctf(s_blam* blam)
 	return blam;
 }
 
-s_blam* config_slanoobie(s_blam* blam)
+s_blam* config_noobie_weapons(s_blam* blam)
 {
-	blam->GameType = GAMETYPE_SLAYER;
-	blam->ScoreLimit = 25;
 	blam->WeaponSet = WEAPONSET_HEAVY;
 	blam->NoShields = 0;
+	blam->InfiniteGrenades = 1;
+	return blam;
+}
+
+s_blam* config_sla_team(s_blam* blam)
+{
+	blam->GameType = GAMETYPE_SLAYER;
+	blam->ScoreLimit = 50;
+	blam->GameTimeLimit = 16000;
+	blam->TeamPlay = 1;
+	return blam;
+}
+
+
+s_blam* config_slanoobie(s_blam* blam)
+{
+	config_noobie_weapons(blam);
+
+	blam->GameType = GAMETYPE_SLAYER;
+	blam->ScoreLimit = 25;	
 	blam->GameTimeLimit = 16000;
 	blam->TeamPlay = 0;
+	return blam;
+}
+
+s_blam* config_koth(s_blam* blam)
+{
+	config_noobie_weapons(blam);
+
+	blam->GameType = GAMETYPE_KOTH;
+	blam->ScoreLimit = 5;	
+	blam->GameTimeLimit = 16000;
+	blam->TeamPlay = 0;
+	return blam;
+}
+
+s_blam* config_oddball(s_blam* blam)
+{
+	config_noobie_weapons(blam);
+
+	blam->GameType = GAMETYPE_ODDBALL;
+	blam->ScoreLimit = 5;	
+	blam->GameTimeLimit = 16000;
+	blam->TeamPlay = 0;
+	blam->BallIndicator = INDICATE_NONE;
+	blam->Indicator = INDICATE_NAVPOINTS;
+	blam->TeamScoring = BALLSPEED_FAST;
+	blam->BallType = BALLTYPE_NORMAL;
+
 	return blam;
 }
 
@@ -34,16 +79,16 @@ s_blam* default_blam(s_blam* blam)
 	blam->GameType = GAMETYPE_CTF;
 	blam->TeamPlay = 1; //ok		
 
-	blam->PlayersOnRadar		=	1;
+	blam->PlayersOnRadar	=	1;
 	blam->FriendIndicators	=	1;
 	blam->InfiniteGrenades	=	0; //ok
 	blam->NoShields			=	1; // 1 = off, 0 = on
 	blam->Invisible			=	0;
 	blam->StartEquipment	=	1;	// 0 Generic, 1 Custom	
 	blam->FriendsOnRadar	=	1;
-	blam->BallIndicator		=	1;
+	blam->BallIndicator		=	1; 
 
-	blam->Indicator = 1;            // 0 Motion tracker, 1 Navpoints, 2 None
+	blam->Indicator = INDICATE_NONE;            // 0 Motion tracker, 1 Navpoints, 2 None
 	blam->OddManOut = 0;            // 0 No, 1 Yes
 	blam->RespawnTimeGrowth = 0;	// 0 Off, 30 units per second eg: 150(0x96) = 30*5 secs
 	blam->RespawnTime = 30;
@@ -79,15 +124,15 @@ s_blam* default_blam(s_blam* blam)
 	blam->TKPenalty = 0;
 	blam->AutoTeamBalance = 0;		// 0 Off, 1 On
 	blam->GameTimeLimit = 38000;
-
-	blam->TypeFlags  = 0;			// Moving hill 0 Off; 1 On (KOTH)  Racetype 0 Normal; 1 Any order; 2 Rally (Race) Random start 0 No; 1 Yes (Oddball)
+							// attack timer -1 | flag at home to score 0 | assault -1 | 00 dunno
+	blam->TypeFlags  = 0xFF000000;			// Moving hill 0 Off; 1 On (KOTH)  Racetype 0 Normal; 1 Any order; 2 Rally (Race) Random start 0 No; 1 Yes (Oddball)
 	blam->TeamScoring = 0;			// Team scoring 0 Minimum; 1 Maximum; 2 Sum (Race), Ballspeed 0 Slow; 1 Normal; 2 Fast (Oddball)								
 	blam->AssaultTimeLimit = 0;		// 0 Two flags
 	blam->Unused1 = 0;
-	blam->TraitWithBall = 0;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
-	blam->TraitWithoutBall = 0;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent
-	blam->BallType = 0;             // 0 Normal, 1 Reverse Tag, 2 Juggernaut 
-	blam->BallCountSpawn = 0;
+	blam->TraitWithBall = -1;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
+	blam->TraitWithoutBall = -1;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent
+	blam->BallType = -1;             // 0 Normal, 1 Reverse Tag, 2 Juggernaut 
+	blam->BallCountSpawn = 1;
 	blam->One = 1;                    // Always 1 ( 0 if custom )
 	blam->GameTypeNum = 0;            // # of the game in the game list ( 0000 - for a custom game type )
 
@@ -109,10 +154,10 @@ bool ReadBlam(BYTE* out, char* gametype)
 	if(strcmp(gametype,"ctf") == 0)
 		config_ctf(&blam);
 	else
-		config_slanoobie(&blam);
+		config_oddball(&blam);
 		
-	BYTE* bv = (BYTE*)(&blam);
-	/*
+	/*BYTE* bv = (BYTE*)(&blam);
+	
 	bv+=0x7c;
 	*bv = 0xff;
 	bv++;
@@ -120,13 +165,14 @@ bool ReadBlam(BYTE* out, char* gametype)
 	bv++;
 	*bv = 0xff;
 	bv++;
-	*bv = 0xff;
+	*bv = 0xff;	
+	bv += 176;
+	*bv = 0;
 	*/
 
+	long* bv = &blam.TypeFlags;
+	//*bv = -1;
 
-	bv += 176;
-
-	//*bv = 0;
 
 	FILE * ff = fopen("ctf_blam.lst","w");
 
@@ -158,19 +204,21 @@ int currentGame = 0;
 
 bool StartNextGame()
 {	
+	_TRACE("\r\n - Current game = %d", currentGame);
+
 	s_mapcycle_entry * game = g_the_game; // just in case, there could be trouble.
 
-	if(currentGame == 1)
+	if((++currentGame % 2) == 0)
 	{
-		currentGame = 0;
 		game->gametype = "ctf";
 		game->map = "bloodgulch";
 	}
 	else
 	{
-		currentGame = 1;
-		game->gametype = "slanoobie";
-		game->map = "prisoner";
+		/*game->gametype = "slanoobie";
+		game->map = "hangemhigh";*/
+		game->gametype = "ctf";
+		game->map = "bloodgulch";
 	}
 
 	ReadBlam(game->gametype_data, game->gametype);

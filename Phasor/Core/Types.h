@@ -122,6 +122,42 @@ enum e_weaponset
 	WEAPONSET_HEAVY
 };
 
+enum e_objective_hints
+{
+	INDICATE_MOTIONTRACKER,
+	INDICATE_NAVPOINTS,
+	INDICATE_NONE
+};
+
+enum e_ball_traits
+{
+	BALLTRAIT_NONE, //?
+	BALLTRAIT_INVISIBLE,
+	BALLTRAIT_DAMAGE_EXTRA,
+	BALLTRAIT_DAMAGE_NO
+};
+
+enum e_ballspeed
+{
+	BALLSPEED_NORMAL,
+	BALLSPEED_SLOW, //?	
+	BALLSPEED_FAST	
+};
+
+enum e_balltype
+{
+	BALLTYPE_NORMAL,
+	BALLTYPE_REVERSE,
+	BALLTYPE_JUGGERNAUGHT
+};
+
+enum e_race_scoring_options
+{
+	RACE_SCORE_MIN,
+	RACE_SCORE_MAX, 
+	RACE_SCORE_SUM
+};
+
 struct s_blam
 {
 	wchar_t GameTypeName[24];	// Unicode
@@ -133,19 +169,19 @@ struct s_blam
 	ULONG InfiniteGrenades	:	1;
 	ULONG NoShields			:	1;
 	ULONG Invisible			:	1;
-	ULONG StartEquipment		:	1;	// 0 Generic, 1 Custom	
-	ULONG FriendsOnRadar		:	1;
-	ULONG BallIndicator		:	1;	
+	ULONG StartEquipment	:	1;	// 0 Generic, 1 Custom	
+	ULONG FriendsOnRadar	:	1;
+	ULONG BallIndicator		:	1;	// overriden indicator, or has nothing to do with a ball?
 
-	long Indicator;            // 0 Motion tracker, 1 Navpoints, 2 None
-	long OddManOut;            // 0 No, 1 Yes
-	long RespawnTimeGrowth;	// 0 Off, 30 units per second eg: 150(0x96) = 30*5 secs
+	long Indicator;             // 0 Motion tracker, 1 Navpoints, 2 None
+	long OddManOut;             // 0 No, 1 Yes
+	long RespawnTimeGrowth;		// 0 Off, 30 units per second eg: 150(0x96) = 30*5 secs
 	long RespawnTime;
 	long SuicidePenalty;
 	long NumOfLives;			// 0 Unlimited, 1 1 life, 3 3 lives, 5 5 lives
-	float HealthPercent;         // max 4.0 = 400%, at 0.0 says 400% but die like no health left (even with overshield)
-	long ScoreLimit;           // Captures for CTF, laps for RACE, kills for Slayer, minutes for King, etc
-	long WeaponSet;            // 0 Normal, 1 Pistols, 2 Rifles, 3 Plasma, 4 Sniper, 5 No sniping, 6 Rockets, 7 Shotguns, 8 Shortrange, 9 Human, 10 Convenant, 11 Classic, 12 Heavy
+	float HealthPercent;        // max 4.0 = 400%, at 0.0 says 400% but die like no health left (even with overshield)
+	long ScoreLimit;            // Captures for CTF, laps for RACE, kills for Slayer, minutes for King, etc
+	long WeaponSet;             // 0 Normal, 1 Pistols, 2 Rifles, 3 Plasma, 4 Sniper, 5 No sniping, 6 Rockets, 7 Shotguns, 8 Shortrange, 9 Human, 10 Convenant, 11 Classic, 12 Heavy
 
 	/* Red Team Vehicle Settings */
 	ULONG RedCustom			:	4; // 8 or 1000b => custom
@@ -179,13 +215,13 @@ struct s_blam
 #ifdef PHASOR_CE
 	UNKNOWN(0x20); // need to do it at runtime not compile time.
 #endif 
-	long TypeFlags;			// Moving hill 0 Off; 1 On (KOTH) Racetype 0 Normal; 1 Any order; 2 Rally (Race) Random start 0 No; 1 Yes (Oddball)
+	long TypeFlags;				// Moving hill 0 Off; 1 On (KOTH) Racetype 0 Normal; 1 Any order; 2 Rally (Race) Random start 0 No; 1 Yes (Oddball)
 	char TeamScoring;			// Team scoring 0 Minimum; 1 Maximum; 2 Sum (Race) Ballspeed 0 Slow; 1 Normal; 2 Fast (Oddball)
 	char AssaultTimeLimit;		// 0 Two flags
 	WORD Unused1;
-	long TraitWithBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
+	long TraitWithBall;			// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent 
 	long TraitWithoutBall;		// 0 None, 1 Invisible, 2 Extra damage, 3 Damage Resistent
-	long BallType;             // 0 Normal, 1 Reverse Tag, 2 Juggernaut 
+	long BallType;				// 0 Normal, 1 Reverse Tag, 2 Juggernaut 
 	long BallCountSpawn;		// 0 = 1, 1 = 2, etc.
 #ifdef PHASOR_CE
 	UNKNOWN(0x20);
@@ -193,7 +229,7 @@ struct s_blam
 	BYTE One;                    // Always 1 ( 0 if custom )
 	char GameTypeNum;            // # of the game in the game list ( 0000 - for a custom game type )
 	WORD Unused2;
-	DWORD Checksum; //with checksum the size if 0xDB or 220, the famebuffer is 216, so we'll just skip the checksum, it was working fine without it.
+	DWORD Checksum;				 //with checksum the size if 0xDB or 220, the famebuffer is 216, so we'll just skip the checksum, it was working fine without it.
 };
 
 static_assert(sizeof(s_blam) == 220, "bad");

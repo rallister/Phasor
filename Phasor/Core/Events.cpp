@@ -1,4 +1,3 @@
-
 #include "Events.h"
 
 // D:\_git\Phasor_RA\Phasor\Phasor\Halo\Server\Server.h
@@ -153,7 +152,7 @@ bool __stdcall OnMapLoad(s_mapcycle_entry* loading_map)
 }
 
 void __stdcall OnHaloPrint(char* msg)
-{	
+{		
 	if(!*msg || *msg == 'U' || *msg == 'D') 
 			return;
 	s_player_structure* player = GetPlayerExecutingCommand();
@@ -355,7 +354,7 @@ void __stdcall OnChat(s_chat_data* chat)
 {	
 
 	ProcessChat(chat);
-
+	/*
 	s_blam* blam2 = (s_blam*)ADDR_GAMETYPE;
 	blam2->GameType = 2;
 	
@@ -410,6 +409,7 @@ void __stdcall OnChat(s_chat_data* chat)
 	}
 
 	_TRACE("\r\n - OnChat %S", chat->msg) // 
+	*/
 }
 
 bool __stdcall OnVehicleEntry(DWORD playerId)
