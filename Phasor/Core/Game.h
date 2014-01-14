@@ -1,4 +1,4 @@
 #include "Core.h"
 
-bool StartServer();
+bool InitGame();
 bool StartNextGame();

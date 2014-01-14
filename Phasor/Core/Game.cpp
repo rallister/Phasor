@@ -193,7 +193,7 @@ bool StartNextGame()
 
 
 
-bool StartServer()
+bool InitGame()
 {
 	g_mapcycle_header = (s_mapcycle_header*)ADDR_MAPCYCLELIST;
 

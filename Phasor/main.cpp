@@ -135,7 +135,7 @@ extern "C" __declspec(dllexport) void OnLoad()
 
 		InstallHooks();
 
-		StartServer();
+		InitGame();
 		
 	}
 	catch (std::exception& e)

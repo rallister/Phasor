@@ -84,13 +84,7 @@ e_command_result __stdcall ProcessCommand(char* input)
 	// called from console.
 	// and when parsin init.txt
 	if(stricmp(input, "sv_mapcycle_begin") == 0)
-	{		
-		//return StartGame(NULL);
-		//s_phasor_mapcycle_entry game;
-		//game.gametype=L"ctfsnipe";
-		//game.map = "bloodgulch";
-
-		//LoadGame(game);
+	{				
 		StartNextGame();
 		return kProcessed;
 	
